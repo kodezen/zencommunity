@@ -1,0 +1,208 @@
+/**
+ * ZenCommunity — Gutenberg (FSE) render-mode stylesheet.
+ *
+ * ISOLATION LAYER. Loaded ONLY on FSE community requests (see
+ * FSE\Manager::enqueue_block_styles()), AFTER app.css, so every FSE-specific
+ * layout fix lives here and never leaks into — or conflicts with — the React
+ * SPA render mode, which ships its own compiled styles (app.css) for the SAME
+ * component class names. Sharing one stylesheet across both render modes is
+ * what causes the two to fight; this file keeps them decoupled.
+ *
+ * Rules:
+ *   - Put EVERY FSE-only override here, scoped under the FSE-only wrappers
+ *     (.zencom-fse-portal / .zencom-fse-block--*), which exist only in FSE
+ *     mode — so nothing here can affect the SPA.
+ *   - Never add FSE layout fixes to app.scss (the shared/SPA styles).
+ *   - This is plain hand-authored CSS — edit it directly, NO build step.
+ */
+
+/* Community layout: the portal stretches the block-columns full-width, so the
+   sidebar panels otherwise sit flush against the browser edges. Inset the
+   columns from the viewport edges and add a gap between them. */
+.zencom-fse-portal .wp-block-columns.alignwide {
+	padding: 16px 20px;
+	gap: 16px;
+	box-sizing: border-box;
+}
+
+/* Sidebars: the community renders as equal-height flex block-columns, so a
+   short menu leaves the (transparent) sidebar column stretched over bare page
+   background. Give the sidebar blocks a filled panel look instead. */
+.zencom-fse-block--left-sidebar,
+.zencom-fse-block--right-sidebar {
+	background: var( --zencom-background, #ffffff );
+	border: 1px solid var( --zencom-border-color, #CBD1D7 );
+	border-radius: 4px;
+}
+
+/* Messages / Live (Support) Chat: the conversation-list panel is
+   `position: fixed` to the VIEWPORT's left edge in the SPA (app.css assumes a
+   full-viewport takeover). In FSE the nav sidebar is also at the left edge, so
+   the two stack — the "double layer" overlap. Un-fix the list so the chat's own
+   flex row (list + thread) lays out INSIDE the content-body column instead.
+   Targets stable semantic classes (not the generated css-* ones). */
+.zencom-fse-portal .zencom-chat,
+.zencom-fse-portal .zencom-support-chat {
+	display: flex;
+	/* The SPA container uses space-around, which leaves big gaps around the
+	   list/thread once the list is un-fixed. Left-align and stretch instead. */
+	justify-content: flex-start;
+	align-items: stretch;
+	gap: 16px;
+}
+.zencom-fse-portal .zencom-chat__conversations {
+	position: relative !important;
+	inset: auto !important;
+	flex: 0 0 320px;
+	width: 320px !important;
+	height: auto !important;
+	align-self: stretch;
+}
+/* The thread panel (the non-list child) fills the rest of the row. Targeted by
+   exclusion so it doesn't depend on the generated css-* class name. */
+.zencom-fse-portal .zencom-chat > *:not( .zencom-chat__conversations ),
+.zencom-fse-portal .zencom-support-chat > *:not( .zencom-chat__conversations ) {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+/* Tickets: the ticket view is a fixed left-sidebar + main-content layout in the
+   SPA, so its main content carries a `margin-left` + `max-width:calc(100% -
+   364px)` that reserves room for that sidebar. In FSE the sidebar is hidden
+   (`.zencom-fse-content-only`), so that reserved space became dead margin —
+   the ticket content sat pushed-right and narrow. Drop the offset so it fills
+   the content column like every other view. Excludes the (hidden) sidebar. */
+.zencom-fse-portal .zencom-tickets > *:not( .zencom-left-sidebar ) {
+	margin-left: 0 !important;
+	max-width: none !important;
+	flex: 1 1 auto !important;
+	min-width: 0 !important;
+}
+
+/* Single ticket (detail) view: SingleTicket.js pins its own ticket-list pane
+   (.zencom-ticket-left-sidebar) and "Ticket information" panel (rendered via
+   RightSidebar -> ZCCustomDrawer, .zencom-drawer--ticket-details) to the
+   viewport's left/right edges with `position: fixed` — an SPA-mode
+   optimization, since there SingleTicket IS the whole page. Note the drawer
+   panel is fixed independently of its .zencom-chat__user wrapper (not a
+   portal, but CSS position:fixed escapes containment all the same), so
+   un-fixing the wrapper alone does nothing — both need it. In FSE the global
+   nav/widgets sidebars occupy those same edges, so all of this floats on top
+   of them. Un-fix everything so SingleTicket's own flex row (list /
+   conversation / info) lays out INSIDE the content-body column instead —
+   nothing here is hidden, only re-contained. */
+.zencom-fse-portal .zencom-single-ticket {
+	/* `justify-content: space-around` on this Flex was dormant in the SPA —
+	   position:fixed children don't participate in their parent's flex
+	   layout, so with both side panes fixed there was effectively only one
+	   real flex item and space-around had nothing to do. Now that the panes
+	   are un-fixed above, it spreads all three apart with visible gaps
+	   instead of packing them together. */
+	justify-content: flex-start !important;
+	overflow-x: auto;
+}
+.zencom-fse-portal .zencom-ticket-left-sidebar {
+	position: relative !important;
+	inset: auto !important;
+	height: auto !important;
+	/* Originally sized 396px inline (maxW/minW) for icon-rail + list combined.
+	   The icon rail is hidden below (duplicate of the global sidebar's own
+	   nav), so that inline width now reserves dead space no visible content
+	   fills. Pin to a fixed contained width instead, matching the working
+	   .zencom-chat__conversations pattern above. */
+	flex: 0 0 320px !important;
+	max-width: 320px !important;
+	min-width: 320px !important;
+}
+.zencom-fse-portal .zencom-ticket-content {
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	flex: 1 1 auto !important;
+	/* Must match the 320px floor put on .zencom-ticket-details__conversations-
+	   inner/reply-box below — a child's min-width doesn't pull its parent
+	   wider, so leaving this at 0 meant the parent kept shrinking past what
+	   its own child demanded, and the child overflowed out of its parent's
+	   bounds (sliding under the Ticket information panel) instead of the row
+	   scrolling as a whole. */
+	min-width: 320px !important;
+}
+/* Scoped to the `lg` breakpoint (992px, Chakra's default) to match this
+   panel's own `display={{ base: "none", lg: "block" }}` prop — an
+   unconditional `display: flex !important` here forced it visible even on
+   mobile, stealing width the conversation column needed and collapsing its
+   text to one character per line. Below `lg` this stays `display: none`,
+   same as it always was. */
+@media (min-width: 992px) {
+	.zencom-fse-portal .zencom-chat__user {
+		position: relative !important;
+		inset: auto !important;
+		width: auto !important;
+		height: auto !important;
+		display: flex !important;
+		align-items: stretch;
+		flex: 0 0 auto !important;
+	}
+	/* Both of these were left unscoped below this block before — same bug as
+	   .zencom-chat__user above, just on its two children. RightSidebar.js's
+	   own useBreakpointValue gates the drawer to not even mount below `lg`,
+	   so this is defense-in-depth, but keep every rule for one element's
+	   subtree under the same breakpoint as a rule, not an afterthought. */
+	.zencom-fse-portal .zencom-drawer--ticket-details {
+		position: relative !important;
+		inset: auto !important;
+		top: auto !important;
+		bottom: auto !important;
+		width: auto !important;
+		opacity: 1 !important;
+		visibility: visible !important;
+	}
+	.zencom-fse-portal .zencom-drawer--ticket-details .zencom-drawer__panel {
+		position: relative !important;
+		inset: auto !important;
+		margin: 0 !important;
+		height: auto !important;
+		transform: none !important;
+		/* Base suffix.scss already sets width:320px!important — pin
+		   flex-basis to match so it doesn't get squeezed/stretched by the
+		   row layout. */
+		flex: 0 0 320px !important;
+	}
+}
+/* Conversations/index.js applies `responsiveContentTicket` (utils/chakra.js),
+   which caps the conversation column at `calc(100% - 764px)` / a hard 720px
+   on 2xl — a formula that reserves exactly the width SingleTicket's own
+   fixed side panels used to occupy in the SPA. Now that those panes are laid
+   out in-flow above, this cap no longer matches the FSE middle column's
+   actual (differently-sized) available width, so it either starves the
+   conversation or leaves it oddly narrow. Let it fill the flex-grow column
+   instead — .zencom-ticket-content already handles the outer width. */
+.zencom-fse-portal .zencom-ticket-details__conversations-inner {
+	/* Was min-width:0 — fine once .zencom-ticket-left-sidebar/.zencom-chat__user
+	   have room to sit at their own fixed widths (1440px+), but between
+	   1024-1440px there often isn't room for all three at once. With this
+	   column allowed to shrink to 0 and its rigid siblings (flex-shrink:0)
+	   refusing to give up any width, ALL the squeeze landed here — text
+	   crushed down to single-character-wide wrapping. Give it a floor
+	   instead: once the row can't fit everything at a readable width,
+	   .zencom-single-ticket's own `overflow-x: auto` (above) kicks in and
+	   the ticket area scrolls horizontally, rather than every column
+	   staying full width while this one alone collapses. */
+	min-width: 320px !important;
+	max-width: 100% !important;
+}
+/* The sticky reply box below the thread applies its own `ticketReply` style
+   object (same file, same `calc(100% - 804px)` / 720px-cap formula) — needs
+   the same treatment, otherwise it renders a different width than the
+   thread above it once the cap is lifted there but not here. */
+.zencom-fse-portal .zencom-ticket-details__reply-box {
+	min-width: 320px !important;
+	max-width: 100% !important;
+}
+/* IconSidebar duplicates the global left-sidebar block's own nav (feeds/
+   groups/members/chat/ticket/live-chat/agent-activity/settings) — in SPA
+   mode the ticket view never shows both at once, so this compact rail is
+   its only left nav there. Under FSE the labeled global sidebar already
+   covers the same nav, so keep just that copy. */
+.zencom-fse-portal .zencom-icon-sidebar {
+	display: none !important;
+}

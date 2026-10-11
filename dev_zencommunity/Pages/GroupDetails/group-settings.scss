@@ -1,0 +1,345 @@
+// Member-facing Group settings page (GroupSettingsLayout.js).
+.zc-gs {
+    --zc-gs-fg: var(--zencom-font-color, #101828);
+    --zc-gs-muted: color-mix(in srgb, var(--zc-gs-fg) 58%, transparent);
+    --zc-gs-line: var(--zencom-border-color, #e4e7ec);
+    --zc-gs-bg: var(--zencom-background, #fff);
+    --zc-gs-accent: var(--zencom-primary-color, #2a3bee);
+    --zc-gs-accent-soft: color-mix(in srgb, var(--zc-gs-accent) 10%, var(--zc-gs-bg));
+
+    width: 100%;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
+    color: var(--zc-gs-fg);
+
+    &__layout {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+
+        @media (max-width: 991px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &__sections {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-width: 0;
+    }
+}
+
+// Header card
+.zc-gs-header {
+    position: sticky;
+    top: 12px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    overflow: hidden;
+    border: 1px solid var(--zc-gs-line);
+    border-radius: 12px;
+    background:
+        radial-gradient(420px circle at 100% 0%, color-mix(in srgb, var(--zc-gs-accent) 8%, transparent), transparent 70%),
+        var(--zc-gs-bg);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 4px;
+        background: linear-gradient(180deg, var(--zc-gs-accent), color-mix(in srgb, var(--zc-gs-accent) 55%, #a855f7));
+    }
+
+    &__back {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        margin: 0;
+        padding: 0;
+        border: 1px solid var(--zc-gs-line);
+        border-radius: 50%;
+        background: var(--zc-gs-bg);
+        color: var(--zc-gs-fg);
+        font-size: 16px;
+        cursor: pointer;
+        transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+
+        &:hover {
+            border-color: var(--zc-gs-accent);
+            background: var(--zc-gs-accent-soft);
+            color: var(--zc-gs-accent);
+            transform: translateX(-2px);
+        }
+    }
+
+    &__tile {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        overflow: hidden;
+        border-radius: 12px;
+        background: var(--zc-gs-accent-soft);
+        color: var(--zc-gs-accent);
+        font-size: 20px;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    &__text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__title {
+        margin: 0;
+        color: var(--zc-gs-fg);
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+    }
+
+    &__subtitle {
+        margin: 2px 0 0;
+        overflow: hidden;
+        color: var(--zc-gs-muted);
+        font-size: 13.5px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        strong {
+            color: var(--zc-gs-fg);
+            font-weight: 600;
+        }
+    }
+
+    &__actions {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__dirty {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #b45309;
+        font-size: 12.5px;
+        font-weight: 500;
+
+        &::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #f59e0b;
+        }
+
+        @media (max-width: 640px) {
+            display: none;
+        }
+    }
+
+    @media (max-width: 640px) {
+        flex-wrap: wrap;
+        padding: 14px;
+
+        &__actions {
+            width: 100%;
+
+            > * {
+                flex: 1;
+            }
+        }
+    }
+}
+
+// Section nav
+.zc-gs-nav {
+    position: sticky;
+    top: 108px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    border: 1px solid var(--zc-gs-line);
+    border-radius: 12px;
+    background: var(--zc-gs-bg);
+
+    @media (max-width: 991px) {
+        display: none;
+    }
+
+    &__label {
+        padding: 4px 10px 8px;
+        color: var(--zc-gs-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    &__item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        margin: 0;
+        padding: 9px 10px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: color-mix(in srgb, var(--zc-gs-fg) 78%, transparent);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease, padding-left 0.2s ease;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            bottom: 8px;
+            left: 0;
+            width: 3px;
+            border-radius: 0 3px 3px 0;
+            background: var(--zc-gs-accent);
+            transform: scaleY(0);
+            transition: transform 0.2s ease;
+        }
+
+        &:hover {
+            padding-left: 14px;
+            background: color-mix(in srgb, var(--zc-gs-fg) 4%, var(--zc-gs-bg));
+            color: var(--zc-gs-fg);
+        }
+
+        &.is-active {
+            background: var(--zc-gs-accent-soft);
+            color: var(--zc-gs-accent);
+            font-weight: 600;
+
+            &::before {
+                transform: scaleY(1);
+            }
+        }
+    }
+
+    &__icon {
+        flex-shrink: 0;
+        font-size: 16px;
+    }
+}
+
+// Section card. No `overflow: hidden` — it clipped dropdown menus (e.g. the
+// Collection react-select) at the card border; corners are rounded per part.
+.zc-gs-section {
+    position: relative;
+    scroll-margin-top: 108px;
+    border: 1px solid var(--zc-gs-line);
+    border-radius: 12px;
+    background: var(--zc-gs-bg);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+
+    // Keep an open menu above the following section cards.
+    &:focus-within {
+        z-index: 2;
+    }
+
+    &__head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--zc-gs-line);
+        border-radius: 11px 11px 0 0;
+        background: color-mix(in srgb, var(--zc-gs-fg) 1.5%, var(--zc-gs-bg));
+    }
+
+    &__icon {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--zc-gs-accent-soft);
+        color: var(--zc-gs-accent);
+        font-size: 18px;
+    }
+
+    &__title {
+        margin: 0;
+        color: var(--zc-gs-fg);
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    &__subtitle {
+        margin: 2px 0 0;
+        color: var(--zc-gs-muted);
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+        border-radius: 0 0 11px 11px;
+
+        &.is-flush {
+            padding: 0;
+        }
+    }
+}
+
+// The LMS integration panels render their own boxed blocks; give them the
+// same card frame as the sections above.
+.zc-gs-integrations {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    &:empty {
+        display: none;
+    }
+
+    > div {
+        margin-top: 0 !important;
+        border: 1px solid var(--zc-gs-line) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    }
+}
+
+.zc-gs-section--anchor {
+    scroll-margin-top: 108px;
+}

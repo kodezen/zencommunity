@@ -1,0 +1,242 @@
+$editor-font: 'sans-serif';
+.zencommunity-block-editor {
+    border-radius: 4px;
+    .edit-post-visual-editor {
+        min-height: 300px;
+        &__content-area {
+            background: #fff;
+            padding: 20px 20px 30px 20px !important;
+        }
+        .editor-styles-wrapper > .is-root-container {
+            padding-top: 0 !important;
+            p {
+                font-size: 14px;
+                margin-top: 0;
+            }
+        }
+    }
+	.interface-interface-skeleton {
+		position: static;
+	}
+    button.components-button {
+        border: unset;
+        &:hover {
+            background: unset;
+            color: unset;
+        }
+    }
+}
+
+.zencommunity-custom-editor-controls {
+    width: 100%;
+    textarea {
+        width: 100%;
+        height: 200px;
+        border: 1px solid var(--zencom-border-color);
+        border-radius: 4px;
+        padding: 12px 24px;
+        margin-bottom: 20px;
+    }
+    .zencommunity-btn {
+        margin-left: auto;
+    }
+}
+
+    // editor modal
+.ql-html-popupContainer {
+    border-radius: 4px !important;
+    margin-top: 40px;
+    .ql-html-textContainer{
+        padding: 20px 30px;
+        .ql-html-popupTitle{
+            display: none;
+        }
+        .ql-html-textArea{
+            max-height: unset;
+            min-height: unset;
+            height: calc(100% - 85px) !important;
+            border-radius: 4px;
+            .ql-editor::-webkit-scrollbar {
+                display: none; /* for Chrome, Safari, and Opera */
+            }
+            .ql-editor {
+                height: unset;
+            }
+            .ql-code-block-container {
+                height: 100%;
+                overflow-y: scroll;
+            }
+            .ql-code-block-container::-webkit-scrollbar {
+                display: none; /* for Chrome, Safari, and Opera */
+            }
+        }
+        .ql-html-buttonGroup {
+            left: calc(94% - 96px);
+            button {
+                padding: 4px 12px;
+                cursor: pointer;
+            }
+        }
+    }
+}
+
+.ql-html-overlayContainer {
+    .ql-editor {
+        height: 100%;
+    }
+    .ql-html-buttonCancel {
+        border: 1px solid var(--zencom-border-color);
+        border-radius: 4px;
+        outline: none;
+        color: var(--zencom-font-color);
+        font-size: 14px;
+    }
+    .ql-html-buttonOk {
+        border: 1px solid var(--zencom-border-color);
+        border-radius: 4px;
+        outline: none;
+        color: var(--zencom-font-color);
+        font-size: 14px;
+    }
+}
+.ql-toolbar {
+    margin: 0 !important;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    z-index: 9;
+    background: var(--zencom-background);
+    .ql-pdf {
+        margin-right: 10px;
+        width: 40px !important;
+        font-size: 14px;
+        &::before {
+            content: "PDF";
+        }
+    }
+    .ql-audio {
+        margin-right: 10px;
+        background: #FFECCA;
+        width: 54px !important;
+        font-size: 14px;
+        &::before {
+            content: "AUDIO"
+        }
+    }
+    .ql-htmlEditButton {
+        margin-right: 10px;
+        background: #FFECCA;
+        font-size: 14px;
+        &::before {
+            content: "Table"
+        }
+    }
+    .ql-customHTML {
+        margin-right: 10px;
+        background: #FFECCA;
+        &::before {
+            content: "HTML";
+            margin-left: -5px;
+        }
+    }
+    .ql-formats{
+        margin: 2px !important;
+        background: #F5F5F5;
+        border-radius: 4px;
+        padding: 4px 8px;
+        height: 30px;
+        margin-top: 4px;
+    }
+    .ql-formats:nth-last-child(5),
+    .ql-formats:nth-last-child(4),
+    .ql-formats:nth-last-child(3),
+    .ql-formats:nth-last-child(2),
+    .ql-formats:nth-last-child(1) {
+        background: #FFECCA;
+    }
+
+    .ql-formats:nth-last-child(1) {
+        position: relative;
+        padding-top: 6px;
+        &::before {
+            content: "";
+            font-size: inherit;
+        }
+        button {
+            font-size: 14px;
+            width: 30px;
+            height: 100%;
+            z-index: 1;
+        }
+    }
+
+    button {
+        padding: 4px 6px;
+    }
+}
+.ql-container {
+    min-height: 400px;
+    max-height: 400px;
+    border-radius: 0 0 4px 4px;
+    overflow-y: scroll;
+    margin-top: -10px;
+    width: 100%;
+    .ql-editor {
+        height: 400px;
+        strong {
+            font-weight: 700;
+        }
+        li[data-list=bullet] .ql-ui {
+            width: 0;
+            height: 0;
+        }
+
+        .zencommunity-custom-video, .zencommunity-custom-audio {
+            width: 100%;
+        }
+    }
+    .ql-editor::-webkit-scrollbar {
+        display: none; /* for Chrome, Safari, and Opera */
+    }
+}
+.ql-container::-webkit-scrollbar {
+    display: none; /* for Chrome, Safari, and Opera */
+}
+
+.zencommunity-block-editor--capped {
+    // The wrapper's own maxHeight (inline style, from the `maxHeight` prop) is
+    // the real budget for toolbar + editor together — without this, content
+    // taller than that budget has nowhere to go but spill out below the box
+    // (the toolbar's own ~90px was never subtracted from the editor's old
+    // hardcoded 240px min-height, so the two together always exceeded a
+    // 240px cap).
+    overflow: hidden;
+    .ql-toolbar {
+        flex-shrink: 0;
+    }
+    .ql-container {
+        flex: 1 1 auto;
+        min-height: 240px;
+        max-height: none;
+        .ql-editor {
+            height: 100%;
+        }
+    }
+}
+
+.ql-snow {
+    border: 1px solid var(--zencom-border-color);
+    color: var( --zencom-font-color);
+}
+
+.ql-snow .ql-tooltip.ql-flip {
+    transform: translate(100%, 100%) !important;
+}
+@media all and (max-width: 1440px) {
+    .ql-html-popupContainer {
+        .ql-html-textContainer{
+            .ql-html-buttonGroup {
+                left: calc(90% - 96px);
+            }
+        }
+    }
+}

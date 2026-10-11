@@ -1,0 +1,154 @@
+*** Changelog ***
+
+= 1.5.9 - 23-09-2026 =
+* Update checks now run in the background and are batched. An ordinary request (admin page, admin-ajax, front end) never contacts the license server for update data: it reads the cache and, when a product is due, schedules one cron event. That event, and WordPress's own twice-daily update check, send a single `check-updates` request carrying every SDK product on the site that shares a license server, via the new `SE_License_SDK_Update_Batch`. Servers without the batch route are asked per product, as before, and remembered for a day so they don't get a wasted batch attempt every cycle. The batch route ships with the StoreEngine Pro license-management addon.
+* Added a site-wide circuit breaker for the license server, shared by every product. After a transport-level failure (timeout, DNS, TLS, 5xx, 408, 429) background requests (update checks, the daily license re-check, promotions, usage data) return immediately instead of waiting on the server, backing off 15 min, 30 min, 1 h … up to 6 h, or for as long as a `Retry-After` header asks (`se_license_sdk_server_backoff` filter). Explicit user actions (activating/deactivating a license, downloading a package, "check now") still go out, and any answer from the server closes the breaker.
+* Promotions are no longer fetched inline on `admin_init` (which ran on every admin request, including admin-ajax) when their cache is cold; they are refreshed by a cron event instead.
+* New `se_license_sdk_can_fetch_inline` filter decides whether the current request may contact the server for background data (default: cron, WP-CLI, and "Check again" on Dashboard → Updates).
+* Fixed wp-admin sending license-server requests on ordinary page loads, which slowed customers' dashboards and, at scale, overloaded the license server. `SE_License_SDK_Client::get_js_params()` (built on every admin page for consumers that pass `script_handler`) asked the updater for `plugin_information`, i.e. a `check-update` + `package-info` round trip whenever the cache was cold. It now reads only locally stored data through the new `SE_License_SDK_Updater::get_cached_update_info()` (SDK cache, then WordPress's own update transient) and never contacts the server. The params are also no longer built on admin pages where the consumer's script isn't registered.
+* Fixed failed update checks never being cached. When `check-update` failed (timeout, 5xx, firewall page), `set_cached_version_info( false )` deleted the transient, so while the server was slow or down every admin request that touched update data retried it, blocking the page on the request timeout and adding load to a server that was already struggling. A failure is now cached for an hour (`{hook}_updater_failure_ttl`), and a one-minute lock stops concurrent requests from all refreshing the same product when the cache expires. Results are also memoised per request, since WordPress writes the update transient more than once per check.
+* Raised the update cache from 3 to 12 hours to match WordPress's own twice-daily update check (`{hook}_updater_cache_ttl`). A release shows up no later than before: the SDK cache is only read when WordPress refreshes its update transient anyway.
+* Background update checks now use a 5-second timeout on page loads (15 seconds in cron, WP-CLI and explicit "check now" actions), mirroring `wp_update_plugins()`. Previously they used the admin cap of 15 seconds per request, per product.
+* Visiting Dashboard → Updates no longer bypasses the cache on every view. Like WordPress core, the SDK only re-checks when "Check again" (`force-check`) is used.
+* The license panel's version history (`GET /updates/versions`) is now cached for 6 hours (`{hook}_versions_cache_ttl`) instead of hitting the server on every mount. The Refresh button sends `force=true`, and the cache is dropped with the rest of the version info on license changes.
+* Fixed REST calls with a query string (`license/status?force=true`, `updates/versions?force=true`) producing a malformed URL on sites using plain permalinks, where the REST base already contains `?rest_route=`.
+
+= 1.5.8 - 14-09-2026 =
+* Fixed "No thanks" on the usage-data opt-in notice sending the administrator's data anyway. `SE_License_SDK_Insights::optOut()` pinged the `opt-in` route and then called `send_tracking_data( true )`, whose override skips the consent check, so the full `log-usage` payload (admin name and email, site URL, plugin and theme lists, server details, and the server IP from an icanhazip.com lookup) reached the license server from an administrator who had just declined. WordPress.org does not allow sending data without consent. Opting out now sends nothing, except an `opt-in` ping with `opt_in: false` from a site that had opted in before, so the server knows sharing stopped. The REST opt-out route goes through the same method.
+* Fixed switching away from a theme sending that payload, plus the admin's name and email, to the `deactivate-license` route without consent. Themes get no feedback form, so `SE_License_SDK_Insights::theme_deactivated()` now sends only for a site that opted in to usage data.
+
+= 1.5.7 - 08-09-2026 =
+* Fixed a deactivated license still offering "Update now" on the plugins screen — and the update actually installing. The SDK never gated updates on license state; it relied entirely on the license server omitting the `package` download URL for an unlicensed site, and WordPress chooses between "Update now" and "Automatic update is unavailable for this plugin" purely on `empty( $response->package )`. The server does omit it, but the response is cached locally, so a package URL fetched while the license was active outlived the license being deactivated. Those signed URLs stay valid on the server for days, so the stale cache was enough for an unlicensed site to pull a paid release straight from plugins.php.
+* Root cause: `delete_cached_version_info()` was wired only to the `license-activate` / `license-deactivate` actions, and those two `do_action()` calls exist solely in `SE_License_SDK_License::handle_license_page_form()` — the SDK's own PHP license form. Every other path (the REST endpoints behind a React license panel, `wp se-license deactivate`, and the scheduled re-check deactivating an expired/revoked license or one whose offline grace ran out) called `deactivate_client_license()` / `deactivate_local_license()` directly and left the cache intact. Consumers that pass `menu` as a string URL and drive licensing through `init_restapi` — which is most of them — therefore had no working invalidation path at all.
+* Invalidation now hangs off the license lifecycle events (`license_activated`, `license_deactivated`, `license_grace_expired`) instead, registered in `SE_License_SDK_Updater::init()`. `emit_license_event()` is reached from the form, REST, WP-CLI and the scheduled check alike, so every path that can change a license now drops the cached version info. The legacy form hooks are kept and are idempotent.
+* Added a second line of defence: `SE_License_SDK_Updater::strip_unlicensed_package()` blanks `package` / `download_link` for a pro product with no valid license as the payload is injected into the update transient, and re-applies to an already-populated row so data cached before this release is gated too. Free products are never touched, and a license inside its offline grace period still counts as valid, so a server outage doesn't strip working updates.
+* Fixed `SE_License_SDK_License::deactivate_local_license()` destroying the stored license key. Its docblock and both call sites promise the key is kept so a renewal can reactivate without the user digging it out again, but the overrides were passed as `wp_parse_args()`' first argument (`$args`) rather than its second (`$defaults`), so `'license' => ''` and `'expires' => ''` won every time. Every expiry, revocation and grace timeout wiped the key. The key and expiry are now preserved and only the status/seat fields are reset; `activate_client_license()` falls back to the stored key when the caller sends none, so reactivating after a renewal is one click.
+* Fixed the `plugin_update` response cache never being read back. `get_cached_version_info()` rejected any payload without a `name` field, but only the `*_information` routes return `name` (they merge in package-info) — the update envelope does not. `set_cached_version_info()` was writing a transient that was always treated as expired, so every update check hit the license server. The guard now accepts either `name` or `new_version`.
+* Fixed `wp se-license status|activate|deactivate <free-slug>` dying with an uncaught `RuntimeException`. `SE_License_SDK_Client::license()` throws for free products while `wp se-license list` lists them as valid targets. `status` now reports free products instead of failing, and the license-only commands exit with a clear message.
+* Fixed `wp se-license install` downloading a package and only then failing an unpassable capability check: `SE_License_SDK_Install_Job` requires `install_plugins` + `activate_plugins`, and WP-CLI runs as user 0 unless `--user=` is given. The command now fails fast and names the remedy, and the docs show `--user=1`.
+* Hardened the SDK REST routes on multisite. `permissions_check()` gated everything on `manage_options`, which every site admin has — so on a network-activated product, where the license and update settings live in site options and the UI belongs to the Network Admin, any single-site admin could deactivate the license or flip the beta channel for the whole network. Network-activated products now require `manage_network_options`; single-site behaviour is unchanged.
+* Fixed `SE_License_SDK_Update_State::get()` ignoring the caller's `$default` for the eight keys `all()` back-fills, and a stray `(array) $input->{$child}` reading an object property off an array in `SE_License_SDK_Updater::__children_to_array()`.
+* Fixed `activate_client_license()` leaving the "updating license" lock set on its two early-error returns.
+
+= 1.5.6 - 26-08-2026 =
+* Fixed the pre-swap package validator permanently blocking updates for any consumer that ships no `vendor/` directory. When `critical_paths` is not declared, `SE_License_SDK_Updater::get_critical_paths()` fell back to a blind `[ 'vendor/autoload.php' ]` — so a pro plugin with no runtime Composer dependencies (or one that vendors elsewhere) had every update rejected with "the downloaded {slug} package is incomplete (missing vendor/autoload.php)", for a file it never shipped. The fallback is now derived from the installed build: `vendor/autoload.php` is only required when the installed copy actually has one. Protection is unchanged for consumers that do ship `vendor/`, and an explicitly declared `critical_paths` is unaffected.
+* Note for consumers hit by this before upgrading: the validator runs from the *installed* build, before WordPress swaps the folder, so neither this SDK fix nor a later `critical_paths` declaration can rescue a site whose installed build predates it unless that site's elected SDK copy is 1.5.6+. Ship an inert `vendor/autoload.php` stub inside the release zip to unblock those installs (never a real Composer autoloader — a second SDK copy would race the host's through the version election).
+
+= 1.5.5 - 30-07-2026 =
+* Added an offline/server-unreachable license grace period. `SE_License_SDK_Client::request()` now tags transport-level failures (DNS/timeout/TLS/blocked request, plus 5xx/408/429) with `transport_error`, and `SE_License_SDK_License::check_license_status()` distinguishes "server unreachable" from a genuine rejection: a previously-valid license keeps working until a grace window (default 14 days since the last successful verification) elapses, instead of a transient outage deactivating a paying customer. New `license_grace_period` init arg + `{hook}_license_grace_period` filter, and `SE_License_SDK_License::is_in_grace()`.
+* Added documented license lifecycle events on each product's hook namespace: `license_activated`, `license_deactivated`, `license_grace_expired`, `license_check_deferred`, `update_installed`, `update_failed`. Subscribe via `$client->add_action( 'license_activated', $cb )`.
+* Added a manual-update fallback: when an automatic install fails, the React License panel now shows step-by-step download-from-your-account + upload-manually instructions (no direct link) with the dashboard/upload URLs, instead of a dead-end error.
+* Added an expiring/expired license renewal admin notice (site-wide, dismissible/snoozable) with a Renew button, so a lapse is noticed before Pro features quietly stop.
+* Added WP-CLI commands: `wp se-license list|status|activate|deactivate|check-update|install <slug>` for every SDK-registered product. New `SE_License_SDK::get_all_registered()` / `get_registered_by_slug()`.
+* Completed theme support: theme updates now get the same pre-swap package validation, core-dependency gate and previous-version/rollback recording as plugins (`source_belongs_to_this_plugin()` and `record_previous_version()` are theme-aware); the license screen moves under Appearance for themes. README documents theme integration.
+* Added multisite/network handling: network-activated products store one license at the network level (`get_site_option`/`update_site_option`), render their license screen + notices in the Network Admin with `manage_network_options`, and update injection now reaches the Network Admin plugins screen. New `SE_License_SDK_Client::is_network_activated()`.
+* i18n: fixed stray wrong text domains (`woo-feed`, `se-license` → `storeengine-sdk`), the SDK now loads its own `storeengine-sdk` translations (PHP + JS via `wp_set_script_translations`), and ships a `languages/storeengine-sdk.pot` template.
+* Docs: documented the Composer `autoload_files` de-dup pitfall (a newer bundled copy can be skipped when multiple plugins bundle the SDK) and the direct-`require` remedy, in both the README and `init.php`.
+
+= 1.5.4 - 10-07-2026 =
+* Added a "maximum activations reached" recovery flow (Freemius-style). When the license server rejects an activation with `license-activation-limit-reached` it now returns the list of the user's active sites; the React License panel opens a picker (`LimitReachedModal`) where the user selects which site(s) to deactivate to free a seat, then re-submits the activation with `deactivate_activations` and takes the freed seat — no more dead-end error. Plumbed through `SE_License_SDK_License::activate_client_license()` (new `deactivate_activations` post field + `get_error_code()` / `get_error_data()` accessors) and `SE_License_SDK_Rest_API::activate_license()` (surfaces the limit case as a 409 carrying the site list). Server side (`license-management` addon): the `activate-license` endpoint gained a `deactivate_activations` schema field, frees the requested seats before re-checking the limit, and includes the active-site list in the 409 payload.
+* Added a core/free-plugin dependency gate so a pro update never out-runs the free plugin it depends on — important now that wordpress.org holds plugin updates for ~24h of review, which can leave new pro running against old free. New `requires_core` SDK config option (slug, or `[ slug, basename, name, min_version ]`) plumbed through `se_license_init()` / `SE_License_SDK_Client` (`getRequiresCore()`). New `SE_License_SDK_Core_Dependency` resolves the required version (license-server per-release answer wins over the static `min_version`), and: (a) the SDK installer (`updates/install`) updates the core plugin first, then blocks with an actionable "update the free plugin first / it can take up to 24h via WordPress.org / update manually" message if it still can't be satisfied; (b) `SE_License_SDK_Updater::gate_core_dependency()` hooks `upgrader_pre_install` to abort a native "Update now" / bulk / background auto-update while the core plugin is behind (rollbacks exempt); (c) an admin notice nags to update the core plugin when a pro update is pending. Entirely a no-op unless `requires_core` is declared. Server side (`license-management` addon): the `check-update` response gained a filterable `requires_core` field (`storeengine/license/software_requires_core`) so the required core version can be declared per product/release.
+
+= 1.5.3 - 02-06-2026 =
+* Added pre-swap update package validation so a failed or incomplete update is dismissed instead of leaving the host plugin half-installed and fataling on every load. `SE_License_SDK_Updater::validate_package_source()` hooks `upgrader_source_selection` at priority 20 (after the `SE_License_SDK_Install_Job` folder-normalizer at 10, so it inspects the final source dir) and returns a `WP_Error` when the extracted package is missing its main plugin file or any declared critical path. WordPress then never reaches `clear_destination` — and on WP 6.3+ restores the temp_backup — so the user keeps a working plugin. Covers both the native plugins.php "Update now" path and the SDK REST installer.
+* Hardened the validator against false positives: it self-scopes to the host plugin via `$hook_extra` (REST `storeengine_sdk.slug`, native `plugin` / bulk `plugins`) and defaults to a no-op on any ambiguous context, so it never inspects or blocks another plugin's package.
+* Added a `critical_paths` SDK config option (default `[ 'vendor/autoload.php' ]`, overridable per-site via the `{hook}critical_paths` filter) so each consumer can declare the bootstrap files whose absence would cause a fatal. Plumbed through `se_license_init()` and `SE_License_SDK_Client` (new `getCriticalPaths()` accessor).
+
+= 1.5.2 - 26-05-2026 =
+* Fixed manual install / rollback always re-installing the currently-installed version instead of the requested one. `SE_License_SDK_Client::request()` was building the outgoing body with `array_merge( $args['body'], [ ..., 'version' => $this->getProjectVersion(), ... ] )`, and because `array_merge()` lets the later array win on duplicate keys, any caller that put `version` in the body had it silently clobbered by the currently-installed plugin version. The `/software/get-package` proxy in `SE_License_SDK_Rest_API::resolve_package_url()` does exactly that — it sends `version` as the *target* version to fetch the zip for. So every rollback/manual-install request effectively asked the server for the currently-installed version, downloaded that zip, re-installed it on top of itself, and reported success without any actual version change.
+* Swapped the merge order so caller-supplied body fields win over auto-added defaults. Matches the precedence the `license` field already used (via `if ( empty( $body['license'] ) )` guard).
+* Added `upgrader_source_selection` filter in `SE_License_SDK_Install_Job::install_from_url()` that renames the working-dir source folder to match the host plugin's slug before `WP_Upgrader::install_package()` derives the destination. Protects against legitimate misnamed-folder uploads (older deployment uploads predating the upload-time `versions-controller.php` folder-name normalization) which would otherwise install into a sibling directory instead of the active plugin folder.
+* Added deactivate-before-install in `install_from_url()` mirroring `Plugin_Upgrader::deactivate_plugin_before_upgrade()` so an actively-loaded plugin file is not held open during the overwrite. Avoids the silent "install reported success but nothing actually changed" symptom on Windows where the running PHP file cannot be replaced.
+* Restored Manage License button text visibility — generic `.se-sdk-app a` link rule no longer overrides `.se-sdk-btn` button text colour (previously turned the white label into the same primary blue as the background).
+
+= 1.5.1 - 26-05-2026 =
+* Fixed `Fatal error: Class "SE_License_SDK_Update_State" not found` that could occur on hosts where multiple SDK copies coexist (Strauss-prefixed vendor folders, classmap-authoritative composer dumps, custom autoloaders). The SDK's own `spl_autoload_register` resolves classes relative to whichever plugin's `init.php` registered the version first — which is not always the plugin that loaded `SE_License_SDK_Updater.php`. The 1.5.0 release added three new classes (`Update_State`, `Install_Job`, `Upgrader_Skin`) and the autoload mismatch could lookup them in the wrong vendor folder.
+* Added a defensive `require_once` for `SE_License_SDK_Update_State` before its two callsites in `SE_License_SDK_Updater::get_updates()` and `::record_previous_version()`. Loads the sibling file by `__DIR__` so it always matches the Updater that's running.
+* Added the same defensive load in `SE_License_SDK_Client::update_state()` and `::new_install_job()` for the React panel REST handlers.
+* Added the same defensive load in `SE_License_SDK_Install_Job::install_from_url()` for `SE_License_SDK_Upgrader_Skin`.
+
+= 1.5.0 - 26-05-2026 =
+* Added `str_starts_with`, `str_ends_with`, `str_contains` polyfills so the SDK runs correctly on PHP 7.4 (matches the declared `php: >=7.1` composer constraint).
+* Added React-based License & Updates panel (`static/license-app.js` + `static/license-app.css`) that replaces the legacy PHP license form on the SDK's built-in admin page. Mounts via `wp.element` — no build step required.
+* Added Status Hero card with installed → latest version, last-checked timestamp, and a "Check for updates" button.
+* Added Update Available banner with one-click "Update to vX.Y.Z" backed by `Plugin_Upgrader`. Synchronous install with captured log streamed to a collapsible drawer.
+* Added Rollback Banner: one-click revert to the previously installed version (recorded automatically via the `upgrader_process_complete` hook).
+* Added Version History card with per-row Install / Roll back / Rollback-blocked actions. Honours per-version `allow_rollback` + `breaking_changes` flags set by the vendor.
+* Added breaking-changes confirm modal inline in the version table.
+* Added "Receive beta updates" toggle backed by the new `/settings/beta-channel` endpoint.
+* Added new REST routes under `storeengine-sdk/v1/{slug}/`: `GET updates/status`, `POST updates/check-now`, `GET updates/versions`, `POST updates/install`, `POST updates/rollback`, `GET/POST settings/beta-channel`.
+* Added `SE_License_SDK_Install_Job` that wraps `Plugin_Upgrader::run()` with a non-interactive skin, captures progress, persists the log to a 1h transient for post-mortem.
+* Added `SE_License_SDK_Upgrader_Skin` — non-interactive skin that suppresses HTML output, captures feedback/errors as JSON, forces direct filesystem (no FTP prompt).
+* Added `SE_License_SDK_Update_State` — single wp_option store for `previous_version`, `last_install_*`, `last_checked_at`, `beta_enabled` mirror.
+* Added `SE_License_SDK_Updater::force_check()` — clears the transient and re-queries the server with `force=true`.
+* Added `upgrader_process_complete` hook to record `previous_version` whenever WP (cron or otherwise) successfully updates the host plugin, enabling the one-click rollback shortcut.
+* Stamps `last_checked_at` on every successful `/check-update` response so the UI can render "Checked 5 min ago" without a network round-trip.
+* Reworked deactivation feedback modal: reduced to 5 reasons (no longer needed / found better / couldn't work / temporary / other), removed the required-selection gating, exposed an in-button spinner that preserves the primary brand colour while submitting.
+* Switched deactivation feedback delivery to `navigator.sendBeacon` so the user is never blocked waiting for an AJAX round-trip before the plugin deactivates. Old AJAX path retained as fallback for browsers without sendBeacon.
+* Submit & Deactivate with no reason now still fires telemetry (server enriches with admin name/email/site URL/usage_log) but never blocks deactivation; Skip & Deactivate skips telemetry entirely.
+* Scoped 5 unscoped CSS selectors in `static/deactivation-modal.css` (`.feedback-message`, `.reasons`, `li`, `.mui`, `.mui-error`) to prevent style leakage onto unrelated WP admin pages.
+* Removed the deactivate-on-WP-plugin-deactivate behaviour in `project_deactivation()`. The license stays active across WP plugin deactivate/reactivate cycles (matches ACF Pro / Yoast Premium / EDD behaviour). Seat is freed only when the user explicitly clicks Deactivate License in the SDK panel or truly uninstalls the plugin.
+* Surfaced real WordPress auto-update state for the host plugin in the UI's "WP Auto-update" pill (was previously hardcoded to "Enabled").
+* Surfaced license `updated_at` as the source for "Last Checked" instead of mistakenly using the update-check timestamp.
+* Dropped JS double-masking of the license key (server already masks via `get_public_data()`).
+* Removed the unused `currentVersion` field from the localized config payload; removed `auto_update_window` from the `/updates/status` response (server endpoint + storage retained for future scheduled-update feature).
+
+= 1.4.0 - 20-04-2026 =
+* Fixed normalize sdk assets path for windows compatibility.
+* Improved purchase URL handling on the client with UTM parameters.
+* Added `blocking` always `true` in request args ensuring client requests are always blocking (required for server-side data saving).
+* Improved updater cache handling.
+* Added support for localizing SDK frontend data via `script_handler`, `script_object`, `get_js_param_name()`, and `get_js_params()` for custom JavaScript or React-based license management screens.
+* Added package update metadata to localized SDK data, including current version, available update details, and update availability status.
+* Added a REST API package info endpoint for SDK integrations that need update data in custom management UIs.
+* Added `redirect_on_activation` option to allow disabling the automatic redirect to the manage license page after plugin activation.
+* Made `package_file`, `package_name`, `basename`, `package_type`, and `package_version` optional in `se_license_init()` by auto-detecting package metadata from the current plugin or theme when possible.
+* Improved package file detection to resolve a plugin's main bootstrap file when the SDK is initialized from an included file.
+* Normalized the configured license server URL before using it in client requests.
+* Updated SDK helper documentation to cover the new script localization and activation redirect options.
+* Improved updater filter signatures and forced-refresh handling for package information requests.
+* Refined internal SDK component initialization to keep shared client state in sync across license, updater, REST API, promotions, and insights modules.
+* Fixed license signature validation after activation and Freemius migration by aligning signature generation with the scheduled license check timestamp.
+* Refreshed Composer package metadata and modernized development dependency constraints.
+
+= 1.3.0 - 30-03-2026 =
+* Fixed float to int implicit conversion warning in `PHP 8.1`
+* Improved IntelliSense & type hints for sdk-init helper function.
+* Added `SensitiveParameter` attribute to hide license key from error log & crash reports.
+* Added isolated per-client REST API for license and insights management.
+* Added `init_restapi` option to `se_license_init` to conditionally enable/disable the REST API.
+* Unified license activation and deactivation logic across the REST API and the built-in management page.
+* Added support for license key masking and public data formatting in the license class.
+* Introduced `get_js_params()` in the client class for easier frontend integration.
+* Improved SDK initialization and path resolution, including PHP 8.1+ compatibility fixes.
+* Refactored REST API callbacks to provide enriched error and success responses.
+* Comprehensive documentation for `se_license_init` arguments.
+* General code style improvements and standard compliance fixes.
+
+= 1.2.0 - 02-12-2025 =
+* Refactored user agent string generation in client class for more detailed environment info and standardized header casing.
+* Enhanced promotions class to handle non-JSON and error responses from the server, ensuring only valid promotions are processed.
+* Added comments explaining logic for hiding promotions for users and admins.
+* Unified version information, passing version to SDK client form initializer.
+
+= 1.1.0 - 06-10-2025 =
+* Updated documentation and fixed typo in readme file.
+* Added doc-comment
+* Added GitHub Actions workflow for release on tag.
+* Fixed promo transient data type before storing.
+* Refactored insights opt-in logic to support delayed and conditional display.
+* Added new methods for install time and notice delay, and improved admin notice rendering.
+* Introduced new views for deactivation reasons and support ticket submission/email.
+* Updated license form and related styles for better UI consistency.
+* Redirects to license form anchor after license check for better user experience.
+* Added UTM parameters to the purchase link for tracking.
+* Updated license-check redirect URL (with hash fragment) for better navigation UX.
+* Updated insights and promotions modules to use a unified CSS variable for primary color, improving consistency across notices, modals, and forms.
+* Refactored support ticket email and form templates for insights, renamed and replaced related view files, and enhanced promo hiding logic to combine transient and user options.
+* Improved code style and documentation for better developer experience.
+* Fixed opt-in notice (insight) template loading.
+* Updated deactivation modal script loader hook priority.
+* Removed error_log statements & clean up unnecessary debug output.
+
+= 1.0.0 - 21-08-2025 =
+* Initial Commit.

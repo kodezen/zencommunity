@@ -1,0 +1,17 @@
+.zen-com-separator {
+    border-bottom: 1px solid var(--zencom-border-color);
+    margin: 0;
+    &--top {
+        border-bottom: 1px solid var(--zencom-border-color);
+        margin: 24px 0 0 0 ;
+    }
+    &--bottom {
+        border-bottom: 1px solid var(--zencom-border-color);
+        margin: 0 0 24px 0 ;
+    }
+
+    &--both {
+        border-bottom: 1px solid var(--zencom-border-color);
+        margin: 24px 0 24px 0 ;
+    }
+}

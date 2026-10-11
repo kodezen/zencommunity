@@ -1,0 +1,119 @@
+// Dropdown tab in AdminNav (e.g. Community → Spaces / Posts / Users / Collections).
+.zc-adminnav-group {
+    &__chevron {
+        transition: transform 0.2s ease;
+    }
+
+    &:hover &__chevron,
+    &:focus-within &__chevron {
+        transform: rotate(180deg);
+    }
+
+    // Opens on hover/focus. The 6px top padding is a transparent bridge so
+    // the pointer can move from the tab into the panel without closing it.
+    &__menu {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 260px;
+        padding: 6px;
+        border: 1px solid var(--zencom-border-color, #e4e7ec);
+        border-radius: 12px;
+        background: var(--zencom-background, #fff);
+        box-shadow: 0 16px 36px -12px rgba(16, 24, 40, 0.22), 0 4px 10px -6px rgba(16, 24, 40, 0.1);
+        visibility: hidden;
+        opacity: 0;
+        transform: translate(-50%, -6px);
+        transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
+
+        &::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            bottom: 100%;
+            left: 0;
+            height: 8px;
+        }
+    }
+
+    &:hover &__menu,
+    &:focus-within &__menu {
+        visibility: visible;
+        opacity: 1;
+        transform: translate(-50%, 0);
+        transition-delay: 0s;
+    }
+
+    &__item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        padding: 9px 12px;
+        border-radius: 8px;
+        color: var(--zencom-font-color, #101828);
+        text-decoration: none;
+        box-shadow: none;
+        outline: none;
+        transition: background-color 0.15s ease, color 0.15s ease, padding-left 0.2s ease;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            bottom: 10px;
+            left: 0;
+            width: 3px;
+            border-radius: 0 3px 3px 0;
+            background: var(--zencom-primary-color, #2a3bee);
+            transform: scaleY(0);
+            transition: transform 0.2s ease;
+        }
+
+        &:hover,
+        &:focus-visible {
+            padding-left: 15px;
+            background: color-mix(in srgb, var(--zencom-font-color, #101828) 4%, var(--zencom-background, #fff));
+            color: var(--zencom-font-color, #101828);
+            box-shadow: none;
+        }
+
+        &:hover::before,
+        &:focus-visible::before,
+        &.is-active::before {
+            transform: scaleY(1);
+        }
+
+        &.is-active {
+            background: color-mix(in srgb, var(--zencom-primary-color, #2a3bee) 8%, var(--zencom-background, #fff));
+        }
+    }
+
+    &__label {
+        font-size: 14px;
+        font-weight: 500;
+
+        .is-active > & {
+            color: var(--zencom-primary-color, #2a3bee);
+            font-weight: 600;
+        }
+    }
+
+    &__desc {
+        color: color-mix(in srgb, var(--zencom-font-color, #101828) 55%, transparent);
+        font-size: 12.5px;
+        line-height: 1.4;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zc-adminnav-group__menu,
+    .zc-adminnav-group__chevron,
+    .zc-adminnav-group__item {
+        transition: none;
+    }
+}

@@ -1,0 +1,144 @@
+// Add-ons page filters (Addons.js).
+.zc-addons-status {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--zencom-border-color);
+    border-radius: 10px;
+    background: var(--zencom-background);
+
+    // Sliding highlight behind the selected option (positioned from JS).
+    &__pill {
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        left: 0;
+        border-radius: 7px;
+        background: var(--zencom-primary-color);
+        box-shadow: 0 2px 6px -2px color-mix(in srgb, var(--zencom-primary-color) 60%, transparent);
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    &__item {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        padding: 6px 12px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: var(--zencom-font-color);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.2s ease, background-color 0.2s ease;
+
+        &:hover:not(.is-active) {
+            background: color-mix(in srgb, var(--zencom-primary-color) 8%, transparent);
+            color: var(--zencom-primary-color);
+        }
+
+        &.is-active {
+            color: #fff;
+        }
+
+        &:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--zencom-primary-color);
+            outline-offset: 1px;
+        }
+    }
+
+    &__count {
+        min-width: 18px;
+        padding: 0 6px;
+        border-radius: 999px;
+        background: var(--zencom-border-color);
+        color: var(--zencom-font-muted);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 17px;
+        text-align: center;
+        transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    &__item:hover:not(.is-active) &__count {
+        background: color-mix(in srgb, var(--zencom-primary-color) 14%, transparent);
+        color: var(--zencom-primary-color);
+        transform: scale(1.08);
+    }
+
+    &__item.is-active &__count {
+        background: rgba(255, 255, 255, 0.22);
+        color: #fff;
+    }
+}
+
+.zc-addons-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.zc-addons-chip {
+    margin: 0;
+    padding: 5px 13px;
+    border: 1px solid var(--zencom-border-color);
+    border-radius: 999px;
+    background: var(--zencom-background);
+    color: var(--zencom-font-color);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        border-color: var(--zencom-primary-color);
+        color: var(--zencom-primary-color);
+        box-shadow: 0 4px 10px -6px color-mix(in srgb, var(--zencom-primary-color) 70%, transparent);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0) scale(0.97);
+    }
+
+    &.is-active {
+        border-color: var(--zencom-primary-color);
+        background: var(--zencom-primary-color);
+        color: #fff;
+        box-shadow: 0 2px 6px -2px color-mix(in srgb, var(--zencom-primary-color) 60%, transparent);
+    }
+
+    &:focus {
+        outline: none;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--zencom-primary-color);
+        outline-offset: 2px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zc-addons-status__pill,
+    .zc-addons-chip {
+        transition: none;
+    }
+
+    .zc-addons-chip:hover {
+        transform: none;
+    }
+}

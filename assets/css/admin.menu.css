@@ -1,0 +1,189 @@
+#adminmenu #toplevel_page_zencommunity-settings .wp-menu-image img {
+	width: 20px !important;
+	height: 20px !important;
+	object-fit: contain;
+	padding: 0px 0px 0px 0px !important;
+	margin: 7.5px !important;
+}
+/* ──────────────────────────────────────────────────────────────────────
+ * ZenCommunity submenu in the WP admin sidebar.
+ * Rounded rows with WP core/Academy's own left-border technique (an inset
+ * 4px box-shadow) on hover and the current page — no transitions or
+ * entrance animation. Works for the expanded menu (current section) and the
+ * hover flyout / folded menu. Colours follow the user's admin colour scheme
+ * via --wp-admin-theme-color.
+ * ────────────────────────────────────────────────────────────────────── */
+#adminmenu #toplevel_page_zencommunity-settings {
+	--zc-menu-accent: var(--wp-admin-theme-color, #2271b1);
+	--zc-menu-text: rgba(240, 246, 252, 0.72);
+	--zc-menu-hover-bg: rgba(255, 255, 255, 0.1);
+	--zc-menu-active-bg: color-mix(in srgb, var(--zc-menu-accent) 28%, transparent);
+}
+
+/* Rows are inset with margins (not panel padding), so the panel never grows
+ * wider than the 160px sidebar. */
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu {
+	box-sizing: border-box;
+	padding: 6px 0 8px;
+}
+
+/* Visible, not hidden: the Community group's flyout opens beside the list. */
+#adminmenu #toplevel_page_zencommunity-settings.wp-has-current-submenu .wp-submenu {
+	overflow: visible;
+}
+
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li:not(.wp-submenu-head) {
+	margin: 0;
+}
+
+/* 5px between rows. */
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li:not(.wp-submenu-head) + li {
+	margin-top: 5px;
+}
+
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li:not(.wp-submenu-head) > a {
+	position: relative;
+	display: flex;
+	align-items: center;
+	padding: 7px 8px 7px 12px;
+	color: var(--zc-menu-text);
+	font-size: 13px;
+	line-height: 18px;
+	box-shadow: none;
+}
+
+/* Hover/active border: WP core/Academy's own technique — an inset 4px solid
+ * bar via box-shadow (core's #adminmenu a:hover rule), not a separate
+ * pseudo-element. Square corners while the bar shows, like core does. */
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li:not(.wp-submenu-head) > a:hover,
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li:not(.wp-submenu-head) > a:focus {
+	background: var(--zc-menu-hover-bg);
+	color: #fff;
+	box-shadow: inset 4px 0 0 0 var(--zc-menu-accent);
+	border-radius: 0;
+}
+
+/* No focus ring/border on click (core adds one); keyboard focus still shows
+ * through the hover-style highlight and border above. */
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li:not(.wp-submenu-head) > a:focus,
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li:not(.wp-submenu-head) > a:focus-visible,
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li:not(.wp-submenu-head) > a:active {
+	outline: none;
+}
+
+/* Current page. */
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li.current > a,
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li.current > a:hover {
+	background: var(--zc-menu-active-bg);
+	color: #fff;
+	font-weight: 600;
+	box-shadow: inset 4px 0 0 0 var(--zc-menu-accent);
+	border-radius: 0;
+}
+
+/* Flyout (hover / folded menu): flat panel, Academy-style (menu.php's
+ * .academy-flyout-sub: square corners, a light drop shadow — not the
+ * rounded, heavier-shadow panel this used to have). */
+#adminmenu #toplevel_page_zencommunity-settings.wp-not-current-submenu .wp-submenu,
+.folded #adminmenu #toplevel_page_zencommunity-settings .wp-submenu {
+	min-width: 165px;
+	border-radius: 0;
+	box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+ * Grouped items (AdminMenu::MENU_GROUPS / print_menu_flyouts()).
+ * When a group is configured, its pages live in the group item's flyout and
+ * their own rows are hidden from the flat list (pages stay registered).
+ * ────────────────────────────────────────────────────────────────────── */
+/* A grouped page's own row is hidden from the flat list, e.g.:
+ * #adminmenu #toplevel_page_zencommunity-settings > .wp-submenu > li:has(> a[href$="page=zencommunity-posts"]) { display: none; }
+ * No groups are configured right now, so nothing is hidden. */
+
+#adminmenu #toplevel_page_zencommunity-settings .zc-menu-group {
+	position: relative;
+}
+
+/* Chevron at the end of the group row. */
+#adminmenu #toplevel_page_zencommunity-settings .zc-menu-chevron {
+	width: 6px;
+	height: 6px;
+	margin-left: auto;
+	border-top: 1.5px solid currentColor;
+	border-right: 1.5px solid currentColor;
+	opacity: 0.6;
+	transform: rotate(45deg);
+}
+
+#adminmenu #toplevel_page_zencommunity-settings .zc-menu-group:hover .zc-menu-chevron,
+#adminmenu #toplevel_page_zencommunity-settings .zc-menu-group:focus-within .zc-menu-chevron {
+	opacity: 1;
+}
+
+/* The flyout panel, flush against the sidebar's edge (so the pointer moves
+ * straight from the row into it) — flat and square like Academy's
+ * .academy-flyout-sub, not rounded with a heavy shadow. */
+#adminmenu #toplevel_page_zencommunity-settings .zc-menu-flyout {
+	position: absolute;
+	top: 0;
+	left: 100%;
+	z-index: 10001;
+	display: none;
+	min-width: 180px;
+	margin: 0;
+	padding: 7px 0 8px;
+	list-style: none;
+}
+
+#adminmenu #toplevel_page_zencommunity-settings .zc-menu-flyout::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: 0;
+	background: #2c3338;
+	box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+#adminmenu #toplevel_page_zencommunity-settings .zc-menu-group:hover > .zc-menu-flyout,
+#adminmenu #toplevel_page_zencommunity-settings .zc-menu-group:focus-within > .zc-menu-flyout {
+	display: block;
+}
+
+/* No bullets: WP only resets list-style on its own menu lists. */
+#adminmenu #toplevel_page_zencommunity-settings .zc-menu-flyout li {
+	margin: 0;
+	list-style: none;
+}
+
+/* No extra per-item padding — the panel's own padding (7px 0 8px, matching
+ * Academy's .academy-flyout-sub) already covers the top/bottom gap. */
+
+/* ──────────────────────────────────────────────────────────────────────
+ * Sections, Academy-style: a divider after Dashboard, after Reports and
+ * after Tools, so the menu reads Dashboard · Community / Reports · Add-ons /
+ * Tools · Settings.
+ * ────────────────────────────────────────────────────────────────────── */
+#adminmenu #toplevel_page_zencommunity-settings > .wp-submenu > li:has(> a[href$="page=zencommunity-settings"]),
+#adminmenu #toplevel_page_zencommunity-settings > .wp-submenu > li:has(> a[href$="page=zencommunity-reports"]),
+#adminmenu #toplevel_page_zencommunity-settings > .wp-submenu > li:has(> a[href$="page=zencommunity-tools"]) {
+	margin-bottom: 6px;
+	padding-bottom: 7px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+#adminmenu #toplevel_page_zencommunity-settings > .wp-submenu > li:has(> a[href$="page=zencommunity-settings"]) + li,
+#adminmenu #toplevel_page_zencommunity-settings > .wp-submenu > li:has(> a[href$="page=zencommunity-reports"]) + li,
+#adminmenu #toplevel_page_zencommunity-settings > .wp-submenu > li:has(> a[href$="page=zencommunity-tools"]) + li {
+	margin-top: 0;
+}
+
+/* Add-ons stands out in amber (as in Academy's menu) until it's the open page. */
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li:not(.current) > a[href$="page=zencommunity-addons"] {
+	color: #fdb022;
+}
+
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li:not(.current) > a[href$="page=zencommunity-addons"]:hover,
+#adminmenu #toplevel_page_zencommunity-settings .wp-submenu li:not(.current) > a[href$="page=zencommunity-addons"]:focus {
+	color: #fec84b;
+}

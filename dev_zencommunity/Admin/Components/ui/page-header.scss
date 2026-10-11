@@ -1,0 +1,171 @@
+// Admin page header (Components/ui/PageHeader.js).
+.zc-page-header {
+    --zc-ph-fg: var(--zencom-font-color, #101828);
+    --zc-ph-muted: color-mix(in srgb, var(--zc-ph-fg) 56%, transparent);
+    --zc-ph-accent: var(--zencom-primary-color, #2a3bee);
+
+    margin-bottom: 24px;
+    animation: zc-ph-in 0.35s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+
+    // ── Breadcrumb ────────────────────────────────────────────────────
+    &__crumbs ol {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px;
+        margin: 0 0 12px;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__crumbs li {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin: 0;
+    }
+
+    &__crumb {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 2px 6px;
+        border-radius: 6px;
+        color: var(--zc-ph-fg);
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 20px;
+        text-decoration: none;
+        transition: background-color 0.15s ease, color 0.15s ease;
+
+        &:is(a):hover,
+        &:is(a):focus-visible {
+            background: color-mix(in srgb, var(--zc-ph-fg) 6%, transparent);
+            color: var(--zc-ph-fg);
+            outline: none;
+            box-shadow: none;
+        }
+
+        &.is-current {
+            color: var(--zc-ph-fg);
+            font-weight: 600;
+        }
+    }
+
+    &__sep {
+        color: color-mix(in srgb, var(--zc-ph-fg) 30%, transparent);
+    }
+
+    // ── Card ──────────────────────────────────────────────────────────
+    &__card {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px 24px;
+        overflow: hidden;
+        padding: 24px 28px;
+        border: 1px solid var(--zencom-border-color, #e4e7ec);
+        border-radius: 12px;
+        background:
+            radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--zc-ph-accent) 9%, transparent) 0%, transparent 55%),
+            var(--zencom-background, #fff);
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+
+        // Brand stripe along the left edge — one solid color top to bottom,
+        // not a fade (the gradient made it read as mismatched/two-toned).
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 4px;
+            background: var(--zc-ph-accent);
+        }
+    }
+
+    &__main {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        gap: 16px;
+        min-width: 0;
+    }
+
+    &__icon {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border: 1px solid color-mix(in srgb, var(--zc-ph-accent) 18%, transparent);
+        border-radius: 12px;
+        background: color-mix(in srgb, var(--zc-ph-accent) 10%, var(--zencom-background, #fff));
+        color: var(--zc-ph-accent);
+    }
+
+    &__text {
+        min-width: 0;
+    }
+
+    &__title {
+        margin: 0;
+        padding: 0;
+        color: var(--zc-ph-fg);
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 30px;
+    }
+
+    &__subtitle {
+        max-width: 640px;
+        margin: 4px 0 0;
+        color: var(--zc-ph-muted);
+        font-size: 14px;
+        line-height: 21px;
+    }
+
+    &__actions {
+        display: flex;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    @media (max-width: 600px) {
+        &__card {
+            padding: 20px;
+        }
+
+        &__icon {
+            width: 40px;
+            height: 40px;
+        }
+
+        &__title {
+            font-size: 19px;
+            line-height: 26px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+
+@keyframes zc-ph-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}

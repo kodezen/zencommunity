@@ -1,0 +1,10 @@
+.zencom-members {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+// Control/menu styling comes from the app-wide assets/scss/_reactSelect.scss.
+.zencom-members .zen-com-select--150 {
+    width: 150px;
+}

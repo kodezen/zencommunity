@@ -1,0 +1,345 @@
+.zen-com-select {
+    &--width-full {
+        width: 100%;
+    }
+
+    &--100 {
+        width: 180px;
+        background: var(--zencom-background);
+        color: var(--zencom-font-color);
+    }
+
+    &--120 {
+        width: 120px;
+    }
+
+    &--136 {
+        width: 136px;
+    }
+    &--140 {
+        width: 140px;
+    }
+
+    // The ticket filter row.
+    //
+    // These were fixed widths, and a selected value had to share the control
+    // with the separator and the arrow — leaving too little for the label, so
+    // anything longer than a word was cropped mid-string: "In progress" showed
+    // as "In pr…", "Date created" as "Date c…", and the row could not be read
+    // at a glance. They now start at the old width and grow with whatever is
+    // chosen, up to a cap that keeps a long product name from pushing the rest
+    // of the row off screen.
+    &--136-ticket,
+    &--138-ticket,
+    &--140-ticket {
+        z-index: 999;
+        width: auto;
+        min-width: 140px;
+        max-width: 240px;
+
+        // Give the reclaimed space to the label rather than the arrows.
+        .zen-com-select__indicator {
+            padding: 4px;
+        }
+    }
+
+    &--150 {
+        width: 150px;
+    }
+
+    &--164 {
+        width: 164px;
+    }
+
+    &--180 {
+        width: 180px;
+    }
+
+    &--180-responsive {
+        width: 180px;
+
+        @media (max-width: 768px) {
+            width: 120px;
+            min-width: 120px;
+        }
+    }
+
+    &--214 {
+        width: 214px;
+    }
+
+    &--200 {
+        width: 200px;
+    }
+
+    &--250 {
+        width: 250px;
+    }
+
+    &--300 {
+        width: 300px;
+    }
+
+    font-size: 14px;
+
+    // ── Shared look for every community react-select ────────────────────
+    // Same pattern as the post composer's group picker: rounded control,
+    // a floating rounded menu with a soft shadow, rows with a light hover
+    // tint, and the chosen row marked with bold text + a check — not a
+    // solid brand fill, so hovering and choosing never look alike.
+    &__control {
+        min-height: 36px !important;
+        border: 1px solid var(--zencom-border-color) !important;
+        border-radius: 6px !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        cursor: pointer !important;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+        &:hover {
+            border-color: color-mix(in srgb, var(--zencom-font-color) 30%, var(--zencom-border-color)) !important;
+        }
+
+        &--is-focused {
+            border-color: var(--zencom-primary-color) !important;
+            box-shadow: 0 0 0 1px var(--zencom-primary-color) !important;
+        }
+
+        &--is-disabled {
+            cursor: default !important;
+            opacity: 0.6;
+        }
+
+        .zen-com-select__input-container {
+            color: var(--zencom-font-color) !important;
+
+            .zen-com-select__input {
+                box-shadow: none;
+                height: 100%;
+                min-height: unset;
+
+                // iOS Safari auto-zooms the page on focus of any form field
+                // with a computed font-size under 16px, and only a pinch
+                // gesture undoes it. This class is on the actual focusable
+                // <input> itself, so it needs the 16px floor even though
+                // the rest of the control stays at 14px.
+                @media (max-width: 768px) {
+                    font-size: 16px !important;
+                }
+            }
+        }
+    }
+
+    &__menu {
+        min-width: 100%;
+        margin-top: 6px !important;
+        overflow: hidden;
+        border: 1px solid var(--zencom-border-color) !important;
+        border-radius: 10px !important;
+        background: var(--zencom-background) !important;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(0, 0, 0, 0.08) !important;
+        z-index: 99999 !important;
+        animation: zen-com-select-menu-in 0.14s ease-out;
+    }
+
+    &__menu-list {
+        padding: 6px !important;
+        scrollbar-width: thin;
+    }
+
+    &__group-heading {
+        padding: 6px 8px 4px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        text-transform: none !important;
+        color: color-mix(in srgb, var(--zencom-font-color) 60%, transparent) !important;
+    }
+
+    &__single-value {
+        color: var(--zencom-font-color) !important;
+    }
+
+    &__placeholder {
+        color: var(--zencom-font-color) !important;
+        opacity: 0.6;
+    }
+
+    &__indicator-separator {
+        display: none;
+    }
+
+    &__dropdown-indicator,
+    &__clear-indicator {
+        color: var(--zencom-font-color) !important;
+        opacity: 0.7;
+        transition: opacity 0.15s ease, transform 0.15s ease !important;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    &__control--menu-is-open &__dropdown-indicator {
+        transform: rotate(180deg);
+    }
+
+    &__option {
+        position: relative;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 8px 32px 8px 10px !important;
+        border-radius: 8px;
+        background: transparent !important;
+        color: var(--zencom-font-color) !important;
+        font-size: 14px !important;
+        line-height: 20px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer !important;
+        transition: background-color 0.12s ease;
+
+        // Hover and keyboard focus: a light neutral tint.
+        &--is-focused,
+        &:hover {
+            background: color-mix(in srgb, var(--zencom-font-color) 6%, var(--zencom-background)) !important;
+        }
+
+        &:active {
+            background: color-mix(in srgb, var(--zencom-font-color) 10%, var(--zencom-background)) !important;
+        }
+
+        // Chosen: bold text + a check on the right.
+        &--is-selected {
+            font-weight: 600;
+
+            &::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                right: 10px;
+                width: 16px;
+                height: 16px;
+                transform: translateY(-50%);
+                background: var(--zencom-primary-color);
+                -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183 215.51 63.51a12 12 0 0 1 17 17Z'/%3E%3C/svg%3E") center / contain no-repeat;
+                mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183 215.51 63.51a12 12 0 0 1 17 17Z'/%3E%3C/svg%3E") center / contain no-repeat;
+            }
+        }
+
+        &--is-disabled {
+            cursor: not-allowed !important;
+            opacity: 0.5;
+
+            &:hover {
+                background: transparent !important;
+            }
+        }
+    }
+
+    &__menu-notice {
+        padding: 10px !important;
+        font-size: 14px;
+        color: color-mix(in srgb, var(--zencom-font-color) 60%, transparent) !important;
+    }
+
+    // Multi-select values: soft chips, like the composer's chips.
+    &__multi-value {
+        border-radius: 6px !important;
+        background: color-mix(in srgb, var(--zencom-font-color) 8%, var(--zencom-background)) !important;
+    }
+
+    &__multi-value__label {
+        padding: 3px 4px 3px 8px !important;
+        color: var(--zencom-font-color) !important;
+        font-size: 13px !important;
+        font-weight: 500;
+    }
+
+    &__multi-value__remove {
+        border-radius: 0 6px 6px 0 !important;
+        color: color-mix(in srgb, var(--zencom-font-color) 60%, transparent);
+        cursor: pointer;
+
+        &:hover {
+            background: color-mix(in srgb, #E2483D 14%, transparent) !important;
+            color: #E2483D !important;
+        }
+    }
+
+    &--transparent {
+        .zen-com-select {
+            &__control {
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            &__placeholder {
+                font-size: 14px;
+                color: var(--zencom-font-color);
+                font-weight: 500;
+            }
+
+            &__indicator-separator {
+                display: none;
+            }
+
+            &__dropdown-indicator {
+                padding: 8px 8px 8px 0;
+                color: var(--zencom-font-color);
+                font-weight: 500;
+            }
+        }
+    }
+
+    &--chat {
+        .zenboards-select {
+            &__value-container {
+                padding: 0;
+            }
+
+            &__input-container {
+                padding: 0;
+                margin: 0;
+            }
+
+            &__placeholder {
+                margin-left: 0;
+                margin-right: 0;
+            }
+
+            &__dropdown-indicator {
+                padding: 0;
+                color: var(--zencom-font-color);
+                font-weight: 500;
+            }
+
+            &__option {
+                width: 100%;
+            }
+
+            &__menu {
+                padding: 0 4px;
+                white-space: nowrap;
+                width: fit-content;
+            }
+
+            &__menu-list {
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+        }
+    }
+}
+
+@keyframes zen-com-select-menu-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}

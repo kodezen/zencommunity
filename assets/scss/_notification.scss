@@ -1,0 +1,128 @@
+.zen-com-notification {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 10px 16px;
+    box-shadow: 0px 12px 72px -8px rgba(16, 24, 40, 0.25);
+    border-radius: 4px;
+    background: #FFF;
+    min-width: 300px;
+    z-index: 99999999;
+
+    &--dashboard {
+        position: fixed;
+        right: 50px;
+        top: 10%;
+        .zen-com-btn {
+            padding: 4px;
+        }
+    }
+    &--success {
+        background: #00AD6B;
+        color: #fff;
+    }
+
+    &--info {
+        background: #7B68EE;
+        color: #fff;
+    }
+
+    &--warning {
+        background: #FDB022;
+        color: #fff;
+    }
+
+    &--error {
+        background: #FF4D4D;
+        color: #fff;
+    }
+    .zen-com-icon {
+        font-size: 24px;
+        &:not(.zen-com-icon--close) {
+            //width: 26px;
+            //height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+			border-width: 1px;
+            border-radius: 50%;
+            border-style: solid;
+			padding: 3px;
+        }
+        &--check {
+            border-color: #4CAF50;
+            &::before {
+                font-size: 8px;
+                color: #4CAF50;
+            }
+        }
+
+        &--success {
+            border: 1px solid #91dcbf;
+            background: #F0FAF6;
+        }
+
+        &--info {
+            border: 1px solid #C6BEF8;
+            background: #F2F0FD;
+        }
+
+        &--warning {
+            border: 1px solid #FEDDA0;
+            background: #FFF7E9;
+        }
+
+        &--error {
+            border: 1px solid #FFB2B2;
+            background: #FFEDED;
+        }
+
+        &--notification {
+            font-size: 25px;
+            &::before {
+                color: #FF9800;
+            }
+        }
+
+        &--information {
+            font-size: 22px;
+
+            &::before {
+                color: #2196F3;
+            }
+        }
+
+        &--information-error {
+            font-size: 22px;
+
+            &::before {
+                color: #F44336;
+            }
+        }
+    }
+
+    .zen-com-btn {
+        padding: 12px 0;
+        &--close-notification {
+            padding: 0
+        }
+        .zen-com-icon--close {
+            background: transparent;
+            &::before{
+                color: #fff;
+            }
+        }
+    }
+
+    &__message {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 5px 24px 5px 0;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 21px;
+        margin: 0;
+    }
+}

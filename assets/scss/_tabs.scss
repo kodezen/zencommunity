@@ -1,0 +1,84 @@
+// ── Community tab bars ─────────────────────────────────────────────────
+// Shared hover/selection motion for underline tabs (group, profile, ticket
+// sidebar, live-chat details, reactions modal) and segmented tabs (group
+// members filter, poll duration). Selected state is read from Chakra's
+// [data-selected] / [aria-selected], or `.is-active` on hand-rolled tabs.
+
+.zc-tab {
+    position: relative;
+    border-bottom: 0 !important;
+    border-radius: 6px 6px 0 0 !important;
+    color: color-mix(in srgb, var(--zencom-font-color) 75%, transparent) !important;
+    transition: color 0.2s ease, background-color 0.2s ease !important;
+
+    // The underline grows out from the centre to full width: faint on hover, solid when selected.
+    &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        border-radius: 2px 2px 0 0;
+        background: var(--zencom-primary-color);
+        opacity: 0;
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+        pointer-events: none;
+    }
+
+    &:hover {
+        color: var(--zencom-font-color) !important;
+
+        &::after {
+            opacity: 0.45;
+            transform: scaleX(1);
+        }
+    }
+
+    &:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--zencom-primary-color) 50%, transparent);
+        outline-offset: -2px;
+    }
+
+    &[data-selected],
+    &[aria-selected='true'],
+    &.is-active {
+        color: var(--zencom-primary-color) !important;
+
+        &::after {
+            opacity: 1;
+            transform: scaleX(1);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &,
+        &::after {
+            transition: none !important;
+        }
+    }
+}
+
+// Segmented tabs (pill indicator): tint the unselected options on hover and
+// give every option a small press.
+.zc-tab-segment {
+    transition: color 0.2s ease, background-color 0.2s ease, transform 0.12s ease !important;
+
+    &:not([data-selected]):hover {
+        background: color-mix(in srgb, var(--zencom-font-color) 6%, transparent) !important;
+    }
+
+    &:active {
+        transform: scale(0.97);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none !important;
+
+        &:active {
+            transform: none;
+        }
+    }
+}

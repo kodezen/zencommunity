@@ -1,0 +1,11 @@
+// Chat head bubble avatar — Chakra's own Avatar root picks up a stray
+// `position: relative; top: -20px` from somewhere in its internal style
+// pipeline (confirmed in devtools: no literal "-20px" exists anywhere in
+// this project's source, so it isn't something we're passing in). Inside the
+// 52px overflow:hidden circle this shifts the avatar content up and out of
+// its clipping box, exposing whatever sits behind the bubble through the
+// gap left at the bottom. `!important` guarantees this wins regardless of
+// which internal mechanism is generating that offset.
+.zc-chathead-bubble__avatar [data-part="root"] {
+    top: 0 !important;
+}

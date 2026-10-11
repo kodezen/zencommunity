@@ -1,0 +1,107 @@
+.zen-com-dd {
+    position: relative;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    padding: 2px 6px !important;
+    border-radius: 4px;
+    border: 1px solid var(--menu-border-color);
+    &:focus,
+    &:hover {
+        border: 1px solid var(--menu-border-focus) !important;
+        background: none !important;
+        color: none;
+    }
+
+    &--postcard {
+        color: var(--zencom-font-color);
+    }
+
+    &--engineering {
+        padding: 4px !important;
+    }
+
+    &__lists {
+        .zen-com-more-options {
+            position: relative;
+            min-width: 175px;
+            z-index: 99999;
+            border-radius: 4px;
+            background: var(--zencom-background);
+            margin: 0;
+            padding: 8px 8px 4px 8px;
+            box-shadow: var(--zencom-shadow);
+            svg {
+                width: 16px;
+                height: 16px;
+            }
+            &__item {
+                cursor: pointer;
+                margin-bottom: 0;
+                border-radius: 6px;
+                list-style: none;
+                a,
+                button {
+                    display: flex;
+                    justify-content: flex-start;
+                    background: transparent;
+                    cursor: pointer;
+                    border: none;
+                    width: 100%;
+                    border-radius: 6px;
+                    padding: 8px 10px 8px 10px;
+
+                    &:hover {
+                        background: var(--zencom-body-background);
+                        border-radius: 4px;
+                    }
+                }
+
+                .chakra-separator {
+                    margin: 4px 0;
+                }
+            }
+
+            &__remover {
+                color: var(--zencom-warning) !important;
+            }
+        }
+    }
+
+    &-variant {
+        &--transparent {
+            --menu-border-color: transparent;
+
+            &:focus,
+            &:hover {
+                --menu-border-focus: transparent;
+            }
+        }
+
+        &--default {
+            --menu-border-color: var(--zencom-border-color);
+
+            &:focus,
+            &:hover {
+                --menu-border-focus: var(--zencom-primary-color);
+            }
+        }
+    }
+}
+
+// suffixs
+.zen-com-dd {
+    &-postcard, &-joined-group {
+        .zen-com-more-options {
+            &__item {
+                button {
+                    svg {
+                        width: 16px;
+                        height: 16px;
+                    }
+                }
+            }
+        }
+    }
+}

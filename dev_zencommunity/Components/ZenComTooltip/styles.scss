@@ -1,0 +1,181 @@
+.zencom-tooltip {
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+
+    &__box {
+        position: absolute;
+        padding: 8px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        white-space: nowrap;
+        z-index: 100;
+        transition: opacity 0.2s;
+
+        background: var(--tooltip-bg);
+        color: var(--tooltip-color);
+
+        &--top {
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+        }
+
+        &--bottom {
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+        }
+
+        &--right {
+            top: 50%;
+            left: 100%;
+            transform: translateY(-50%);
+            margin-left: 8px;
+        }
+
+        &--left {
+            top: 50%;
+            right: 100%;
+            transform: translateY(-50%);
+            margin-right: 8px;
+        }
+
+        &--custom-1 {
+            bottom: 90%;
+            left: 95%;
+            transform: translateX(-95%);
+        }
+
+        &--bottom-left {
+            top: 100%;
+            left: 0;
+            transform: translateY(8px); 
+            margin-top: 8px;        }
+
+        &--top-left {
+            bottom: 100%;
+            left: 0;
+            transform: translateY(-8px);
+            margin-bottom: 8px;
+        }
+
+        &--top-right {
+            bottom: 100%;
+            right: 0;
+            transform: translateY(-8px);
+            margin-bottom: 8px;
+        }
+
+        &--bottom-right {
+            top: 100%;
+            right: 0;
+            transform: translateY(8px);
+            margin-top: 8px;
+        }
+    }
+
+    &__arrow {
+        width: 0;
+        height: 0;
+        position: absolute;
+        border-style: solid;
+        &--top {
+            top: 100%;
+            left: 50%;
+            border-width: 5px 5px 0 5px;
+            border-color: var(--tooltip-bg) transparent transparent transparent;
+            transform: translateX(-50%);
+        }
+
+        &--right {
+            top: 50%;
+            left: -5px;
+            border-width: 5px 5px 5px 0;
+            border-color: transparent var(--tooltip-bg) transparent transparent;
+            transform: translateY(-50%);
+        }
+
+        &--bottom {
+            bottom: 100%;
+            left: 50%;
+            border-width: 0 5px 5px 5px;
+            border-color: transparent transparent var(--tooltip-bg) transparent;
+            transform: translateX(-50%);
+        }
+
+        &--left {
+            top: 50%;
+            right: -5px;
+            border-width: 5px 0 5px 5px;
+            border-color: transparent transparent transparent var(--tooltip-bg);
+            transform: translateY(-50%);
+        }
+
+        &--bottom-left {
+            bottom: 100%;
+            left: 10px;
+            border-width: 0 5px 5px 5px;
+            border-color: transparent transparent var(--tooltip-bg) transparent;
+        }
+
+        &--top-left {
+            top: 100%;
+            left: 10px; /* similar offset to bottom-left */
+            border-width: 5px 5px 0 5px;
+            border-color: var(--tooltip-bg) transparent transparent transparent;
+        }
+
+        &--top-right {
+            top: 100%;
+            right: 10px;
+            border-width: 5px 5px 0 5px;
+            border-color: var(--tooltip-bg) transparent transparent transparent;
+        }
+
+        &--bottom-right {
+            bottom: 100%;
+            right: 10px;
+            border-width: 0 5px 5px 5px;
+            border-color: transparent transparent var(--tooltip-bg) transparent;
+        }
+    }
+
+    &__variant {
+        &--light-blue {
+            --tooltip-bg: #EBEDFF;
+            --tooltip-color: var(--zencom-primary-color);
+        }
+
+        &--white {
+            --tooltip-bg: var(--zencom-body-background);
+            --tooltip-color: var(--zencom-font-color);
+        }
+
+        &--black {
+            --tooltip-bg: var(--zencom-font-color);
+            --tooltip-color: var(--zencom-background);
+        }
+
+        &--secondary {
+            --tooltip-bg: var(--zencom-body-background);
+            --tooltip-color: var(--zencom-font-color);
+        }
+    }
+}
+
+/* suffix's */
+.zencom-tooltip {
+    &--reacts {
+        .zencom-tooltip__box {
+            box-shadow: var(--zencom-shadow);
+        }
+    }
+    &--ticket-replies {
+        .zencom-tooltip__box {
+            box-shadow: var(--zencom-shadow);
+        }
+    }
+}

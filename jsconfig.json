@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "baseUrl": "dev_zencommunity",
+      "paths": {
+        "@Components/*": ["Components/*"],
+        "@Pages/*": ["Pages/*"],
+        "@Redux/*": ["redux/*"],
+        "@Utils/*": ["utils/*"],
+        "@Hooks/*": ["hooks/*"],
+        "@Context/*": ["Context/*"],
+      }
+    },
+    "include": ["dev_zencommunity"]
+  }

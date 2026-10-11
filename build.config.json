@@ -1,0 +1,24 @@
+{
+  "slug": "zencommunity",
+  "textdomain": "zencommunity",
+  "mainFile": "zencommunity.php",
+  "languages": "i18n/languages",
+  "zipName": "{slug}.{version}.zip",
+  "outputDir": "..",
+  "versionFrom": "header",
+
+  "steps": { "js": true, "composer": true, "strauss": false, "pot": true, "zip": true },
+
+  "js": { "install": "auto", "installCommand": "npm ci --legacy-peer-deps", "buildScript": "build" },
+
+  "composer": {
+    "command": "composer run build"
+  },
+
+  "pot": {
+    "exclude": ["node_modules", "vendor", "dev_zencommunity", "assets/js", "assets/lib", "build-tools", "openspec", "docs", "tests", "test-results", ".git", "i18n/languages"]
+  },
+
+  "autoDownloadTools": true,
+  "toolVersions": { "wpCli": "2.12.0", "strauss": "0.19.3" }
+}

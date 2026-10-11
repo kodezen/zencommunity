@@ -1,0 +1,994 @@
+// Scoped to the Setup Wizard only — a self-contained pair of fade/slide-in
+// keyframes so the step transitions feel premium without pulling in
+// Framer Motion (not a dependency of this plugin) or the frontend bundle's
+// .zencom-animate-fade (defined in app.scss, a separate webpack entry that
+// never loads alongside the admin bundle — see tailwind.admin.config.js).
+
+// The wizard is a standalone document (templates/admin/setup.php) that never
+// loads wp-admin's core CSS, so without this it falls back to the browser's
+// default serif. Same system stack as wp-admin's own body font.
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+#ZenCommunitySettingsElement :is(button, input, select, textarea) {
+	font-family: inherit;
+}
+
+@keyframes zc-wizard-enter-forward {
+	from {
+		opacity: 0;
+		transform: translateX(16px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes zc-wizard-enter-back {
+	from {
+		opacity: 0;
+		transform: translateX(-16px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+.zc-wizard-step-enter {
+	animation: zc-wizard-enter-forward 0.28s ease-out both;
+}
+
+.zc-wizard-step-enter-back {
+	animation: zc-wizard-enter-back 0.28s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.zc-wizard-step-enter,
+	.zc-wizard-step-enter-back {
+		animation: none;
+	}
+}
+
+// Welcome step's feature marquee: each row renders its pill list twice back
+// to back (see EnvironmentCheck.js), so the track is exactly double the
+// width of one pass — translating it by -50% moves exactly one full set and
+// loops with no visible seam. `width: max-content` (not a Tailwind `tw-w-*`
+// utility) is required so the track can be wider than its scroll-clipped
+// parent instead of being squeezed to fit it.
+@keyframes zc-wizard-marquee-left {
+	from { transform: translateX(0); }
+	to { transform: translateX(-50%); }
+}
+
+@keyframes zc-wizard-marquee-right {
+	from { transform: translateX(-50%); }
+	to { transform: translateX(0); }
+}
+
+.zc-wizard-marquee-track {
+	display: flex;
+	width: max-content;
+	animation: zc-wizard-marquee-left 36s linear infinite;
+}
+
+.zc-wizard-marquee-track--reverse {
+	animation-name: zc-wizard-marquee-right;
+}
+
+// Pause both rows while the pointer is over the marquee, so a pill can be read.
+.zc-wizard-marquee:hover .zc-wizard-marquee-track {
+	animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.zc-wizard-marquee-track {
+		animation: none;
+	}
+}
+
+// ── Steps 2-6 layout: left sidebar stepper + content column ───────────
+.zc-wizard-shell {
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	display: flex;
+	background: var(--zencom-background, #fff);
+	opacity: 1;
+	transition: opacity 0.45s ease;
+
+	// Launch succeeded and the wizard is handing off to the full-page
+	// navigation to the dashboard (SetupWizard/index.js's handleLaunch) —
+	// fades out rather than sitting static until the page cuts away, so the
+	// hand-off reads as one motion instead of a jump.
+	&.is-leaving {
+		opacity: 0;
+		pointer-events: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.zc-wizard-shell {
+		transition: none;
+	}
+}
+
+.zc-wizard-sidebar {
+	display: none;
+	flex-direction: column;
+	flex-shrink: 0;
+	width: 296px;
+	padding: 28px 24px 24px;
+	overflow-y: auto;
+	border-right: 1px solid var(--zencom-border-color, #e5e7eb);
+	background: color-mix(in srgb, var(--zencom-font-color, #101828) 4%, #fff);
+
+	@media (min-width: 1024px) {
+		display: flex;
+	}
+
+	&__logo {
+		width: 150px;
+		margin-bottom: 24px;
+	}
+
+	&__intro {
+		margin: 0 0 32px !important;
+		color: color-mix(in srgb, var(--zencom-font-color, #101828) 75%, transparent);
+		font-size: 14px;
+		line-height: 1.5;
+	}
+
+	&__exit {
+		display: inline-flex;
+		align-items: center;
+		align-self: flex-start;
+		gap: 4px;
+		margin-top: auto;
+		padding: 6px 0;
+		border: 0;
+		background: none;
+		color: var(--zencom-font-color, #101828);
+		font-size: 14px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: color 0.15s ease, gap 0.15s ease;
+
+		&:hover {
+			gap: 6px;
+			color: var(--zencom-primary-color);
+		}
+	}
+}
+
+.zc-wizard-steps {
+	margin: 0 !important;
+	padding: 0;
+	list-style: none;
+
+	&__item {
+		position: relative;
+		margin: 0 !important;
+		padding-bottom: 22px;
+
+		// Connector from this step's dot down to the next one.
+		&:not(:last-child)::after {
+			content: '';
+			position: absolute;
+			top: 30px;
+			bottom: 2px;
+			left: 13px;
+			width: 2px;
+			border-radius: 2px;
+			background: var(--zencom-border-color, #e5e7eb);
+			transition: background 0.3s ease;
+		}
+
+		&.is-done:not(:last-child)::after {
+			background: var(--zencom-primary-color);
+		}
+	}
+
+	&__row {
+		display: flex;
+		align-items: flex-start;
+		gap: 12px;
+		width: 100%;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
+		text-align: left;
+	}
+
+	button.zc-wizard-steps__row {
+		cursor: pointer;
+
+		&:hover .zc-wizard-steps__label {
+			color: var(--zencom-primary-color);
+		}
+
+		&:disabled {
+			cursor: wait;
+		}
+	}
+
+	&__dot {
+		display: inline-flex;
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border: 1.5px solid var(--zencom-border-color, #d0d5dd);
+		border-radius: 50%;
+		background: #fff;
+		color: color-mix(in srgb, var(--zencom-font-color, #101828) 70%, transparent);
+		font-size: 12px;
+		font-weight: 600;
+		transition: all 0.25s ease;
+	}
+
+	&__text {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		padding-top: 4px;
+	}
+
+	&__label {
+		color: var(--zencom-font-color, #101828);
+		font-size: 14px;
+		font-weight: 600;
+		line-height: 1.3;
+		transition: color 0.15s ease;
+	}
+
+	&__hint {
+		color: color-mix(in srgb, var(--zencom-font-color, #101828) 55%, transparent);
+		font-size: 13px;
+		line-height: 1.4;
+	}
+
+	.is-active &__dot {
+		border-color: var(--zencom-primary-color);
+		color: var(--zencom-primary-color);
+		box-shadow: 0 0 0 4px color-mix(in srgb, var(--zencom-primary-color) 14%, transparent);
+	}
+
+	.is-active &__label {
+		color: var(--zencom-primary-color);
+	}
+
+	.is-active &__hint {
+		color: color-mix(in srgb, var(--zencom-font-color, #101828) 75%, transparent);
+	}
+
+	.is-done &__dot {
+		border-color: var(--zencom-primary-color);
+		background: var(--zencom-primary-color);
+		color: #fff;
+	}
+}
+
+.zc-wizard-main {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
+	overflow-y: auto;
+}
+
+// Shown below 1024px, where the sidebar is hidden.
+.zc-wizard-mobilebar {
+	position: sticky;
+	top: 0;
+	z-index: 5;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 20px;
+	border-bottom: 1px solid var(--zencom-border-color, #e5e7eb);
+	background: var(--zencom-background, #fff);
+
+	img {
+		width: 130px;
+	}
+
+	@media (min-width: 1024px) {
+		display: none;
+	}
+}
+
+.zc-wizard-content {
+	width: 100%;
+	max-width: 960px;
+	margin: 0 auto;
+	padding: 56px 32px 48px;
+
+	@media (max-width: 640px) {
+		padding: 28px 16px 32px;
+	}
+}
+
+.zc-wizard-eyebrow {
+	margin: 0 0 12px !important;
+	color: var(--zencom-primary-color);
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.zc-wizard-content {
+	flex: 1;
+}
+
+// Back/Next bar pinned to the bottom of the content column; the column
+// scrolls underneath it.
+.zc-wizard-footer {
+	position: sticky;
+	bottom: 0;
+	z-index: 5;
+	border-top: 1px solid var(--zencom-border-color, #e5e7eb);
+	background: color-mix(in srgb, var(--zencom-background, #fff) 92%, transparent);
+	backdrop-filter: blur(8px);
+
+	&__inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		max-width: 880px;
+		margin: 0 auto;
+		padding: 16px 32px;
+
+		@media (max-width: 640px) {
+			padding: 12px 16px;
+		}
+	}
+}
+
+// ── Step building blocks (WizardUI.js / WizardCard.js) ────────────────
+.zc-wizard-content {
+	--zc-wz-fg: var(--zencom-font-color, #101828);
+	--zc-wz-muted: color-mix(in srgb, var(--zc-wz-fg) 58%, transparent);
+	--zc-wz-line: var(--zencom-border-color, #e4e7ec);
+	--zc-wz-accent: var(--zencom-primary-color, #2a3bee);
+	--zc-wz-accent-soft: color-mix(in srgb, var(--zc-wz-accent) 10%, #fff);
+	max-width: 880px;
+}
+
+.zc-wz-head {
+	margin-bottom: 28px;
+
+	&__title {
+		margin: 0 !important;
+		color: var(--zc-wz-fg);
+		font-size: 26px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1.25;
+	}
+
+	&__desc {
+		max-width: 620px;
+		margin: 8px 0 0 !important;
+		color: var(--zc-wz-muted);
+		font-size: 15px;
+		line-height: 1.55;
+	}
+}
+
+.zc-wz-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+// Section card — mirrors the admin SectionCard / settings panel.
+.zc-wz-card {
+	overflow: hidden;
+	border: 1px solid var(--zc-wz-line);
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+
+	&__head {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 16px 20px;
+		border-bottom: 1px solid var(--zc-wz-line);
+		background: color-mix(in srgb, var(--zc-wz-fg) 1.5%, #fff);
+	}
+
+	&__icon {
+		display: inline-flex;
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 10px;
+		background: var(--zc-wz-accent-soft);
+		color: var(--zc-wz-accent);
+	}
+
+	&__titles {
+		flex: 1;
+		min-width: 0;
+	}
+
+	&__title {
+		margin: 0 !important;
+		color: var(--zc-wz-fg);
+		font-size: 15px;
+		font-weight: 600;
+		line-height: 1.4;
+	}
+
+	&__hint {
+		margin: 2px 0 0 !important;
+		color: var(--zc-wz-muted);
+		font-size: 13px;
+		line-height: 1.45;
+	}
+
+	&__body {
+		padding: 20px;
+
+		&.is-flush {
+			padding: 0;
+		}
+	}
+}
+
+// Selectable option card with a radio indicator.
+.zc-wz-choice {
+	position: relative;
+	display: flex;
+	gap: 14px;
+	width: 100%;
+	margin: 0;
+	padding: 18px;
+	border: 1px solid var(--zc-wz-line);
+	border-radius: 12px;
+	background: #fff;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+
+	&.is-stack {
+		flex-direction: column;
+		padding: 20px;
+	}
+
+	&.is-row {
+		align-items: center;
+		padding-right: 48px;
+	}
+
+	&:hover:not(:disabled) {
+		border-color: color-mix(in srgb, var(--zc-wz-accent) 45%, var(--zc-wz-line));
+		box-shadow: 0 6px 16px -10px rgba(16, 24, 40, 0.25);
+		transform: translateY(-1px);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--zc-wz-accent);
+		outline-offset: 2px;
+	}
+
+	&:disabled {
+		cursor: not-allowed;
+		opacity: 0.55;
+	}
+
+	&.is-active {
+		border-color: var(--zc-wz-accent);
+		background: color-mix(in srgb, var(--zc-wz-accent) 3%, #fff);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--zc-wz-accent) 14%, transparent);
+	}
+
+	&__radio {
+		position: absolute;
+		top: 18px;
+		right: 18px;
+		width: 18px;
+		height: 18px;
+		border: 1.5px solid color-mix(in srgb, var(--zc-wz-fg) 25%, transparent);
+		border-radius: 50%;
+		background: #fff;
+		transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+		.is-row & {
+			top: 50%;
+			transform: translateY(-50%);
+		}
+
+		.is-active & {
+			border-color: var(--zc-wz-accent);
+			box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 9px var(--zc-wz-accent);
+		}
+	}
+
+	&__icon {
+		display: inline-flex;
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		border-radius: 12px;
+
+		.is-row & {
+			width: 40px;
+			height: 40px;
+			border-radius: 10px;
+		}
+	}
+
+	&__text {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		min-width: 0;
+		padding-right: 24px;
+
+		.is-row & {
+			padding-right: 0;
+		}
+	}
+
+	&__title {
+		color: var(--zc-wz-fg);
+		font-size: 15px;
+		font-weight: 600;
+		line-height: 1.35;
+	}
+
+	&__desc {
+		color: var(--zc-wz-muted);
+		font-size: 13px;
+		line-height: 1.5;
+	}
+}
+
+.zc-wz-choice-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 14px;
+
+	&.is-2 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+
+		@media (max-width: 640px) {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	&.is-compact {
+		gap: 10px;
+
+		.zc-wz-choice {
+			gap: 12px;
+			padding: 12px 40px 12px 12px;
+		}
+
+		.zc-wz-choice__radio {
+			right: 14px;
+		}
+
+		.zc-wz-choice__icon {
+			width: 36px;
+			height: 36px;
+		}
+
+		.zc-wz-choice__title {
+			font-size: 14px;
+		}
+
+		.zc-wz-choice__desc {
+			font-size: 12.5px;
+		}
+	}
+
+	&.is-3 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+
+		@media (max-width: 760px) {
+			grid-template-columns: 1fr;
+		}
+	}
+}
+
+// Admin-style segmented control.
+.zc-wz-segmented {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin-bottom: 20px;
+	padding: 4px;
+	border: 1px solid var(--zc-wz-line);
+	border-radius: 10px;
+	background: color-mix(in srgb, var(--zc-wz-fg) 4%, #fff);
+
+	&__item {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		margin: 0;
+		padding: 7px 14px;
+		border: 0;
+		border-radius: 7px;
+		background: transparent;
+		color: var(--zc-wz-muted);
+		font: inherit;
+		font-size: 13.5px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+
+		&:hover {
+			color: var(--zc-wz-fg);
+		}
+
+		&.is-active {
+			background: #fff;
+			box-shadow: 0 1px 2px rgba(16, 24, 40, 0.1), 0 0 0 1px var(--zc-wz-line);
+			color: var(--zc-wz-accent);
+			font-weight: 600;
+		}
+	}
+}
+
+// Label/hint + control rows inside a card, divided by hairlines.
+.zc-wz-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	padding: 16px 20px;
+
+	& + & {
+		border-top: 1px solid var(--zc-wz-line);
+	}
+
+	&__text {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		min-width: 0;
+	}
+
+	&__label {
+		color: var(--zc-wz-fg);
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	&__hint {
+		max-width: 460px;
+		color: var(--zc-wz-muted);
+		font-size: 13px;
+		line-height: 1.45;
+	}
+
+	&__control {
+		flex-shrink: 0;
+	}
+
+	@media (max-width: 640px) {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 12px;
+	}
+}
+
+// Launch review list.
+.zc-wz-review {
+	margin: 0 !important;
+	padding: 0;
+	list-style: none;
+
+	&__item {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		margin: 0 !important;
+		padding: 14px 20px;
+
+		& + & {
+			border-top: 1px solid var(--zc-wz-line);
+		}
+	}
+
+	&__icon {
+		display: inline-flex;
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 10px;
+	}
+
+	&__text {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+
+	&__label {
+		color: var(--zc-wz-muted);
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	&__value {
+		color: var(--zc-wz-fg);
+		font-size: 14.5px;
+		font-weight: 600;
+		overflow-wrap: anywhere;
+	}
+
+	&__meta {
+		color: var(--zc-wz-muted);
+		font-size: 13px;
+	}
+
+	&__check {
+		display: inline-flex;
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: center;
+		width: 22px;
+		height: 22px;
+		border-radius: 50%;
+		background: #dcfce7;
+		color: #16a34a;
+	}
+
+	code {
+		flex-shrink: 0;
+		padding: 3px 8px;
+		border-radius: 6px;
+		background: color-mix(in srgb, var(--zc-wz-fg) 5%, #fff);
+		color: var(--zc-wz-muted);
+		font-size: 12px;
+	}
+}
+
+// Space basics card (steps/SpaceBasics.js).
+.zc-wz-space-basics {
+	.zc-wz-card__body {
+		padding: 0;
+	}
+}
+
+// Step 3 view switch: the form slides in from the left, the type grid
+// slides back in from the right.
+@keyframes zc-wz-slide-left {
+	from { opacity: 0; transform: translateX(-40px); }
+	to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes zc-wz-slide-right {
+	from { opacity: 0; transform: translateX(40px); }
+	to { opacity: 1; transform: translateX(0); }
+}
+
+.zc-wz-slide-in-left {
+	animation: zc-wz-slide-left 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.zc-wz-slide-in-right {
+	animation: zc-wz-slide-right 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.zc-wz-slide-in-left,
+	.zc-wz-slide-in-right {
+		animation: none;
+	}
+}
+
+// Round icon button (e.g. back to the Space type grid).
+.zc-wz-icon-btn {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--zc-wz-line);
+	border-radius: 50%;
+	background: #fff;
+	color: var(--zc-wz-fg);
+	cursor: pointer;
+	transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+
+	&:hover {
+		border-color: var(--zc-wz-accent);
+		background: var(--zc-wz-accent-soft);
+		color: var(--zc-wz-accent);
+		transform: translateX(-2px);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--zc-wz-accent);
+		outline-offset: 2px;
+	}
+}
+
+// Titled section inside a card body; sections are divided by hairlines.
+.zc-wz-section {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	padding: 20px;
+
+	& + & {
+		border-top: 1px solid var(--zc-wz-line);
+	}
+
+	&__title {
+		margin: 0 !important;
+		color: var(--zc-wz-muted);
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		line-height: 1;
+		text-transform: uppercase;
+	}
+}
+
+.zc-wz-fields-2 {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+
+	@media (max-width: 640px) {
+		grid-template-columns: 1fr;
+	}
+}
+
+.zc-wz-field-hint {
+	display: block;
+	margin-top: 6px;
+	color: var(--zc-wz-muted);
+	font-size: 12.5px;
+
+	code {
+		padding: 2px 6px;
+		border-radius: 5px;
+		background: color-mix(in srgb, var(--zc-wz-fg) 5%, #fff);
+		color: var(--zc-wz-muted);
+		font-size: 12px;
+	}
+}
+
+// Thumbnail: small tile + label/hint/actions, like the Branding logo rows.
+.zc-wz-thumb {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+
+	&__tile {
+		flex-shrink: 0;
+		width: 72px;
+		height: 72px;
+		border: 1px solid var(--zc-wz-line);
+		border-radius: 14px;
+		object-fit: cover;
+
+		&.is-empty {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border: 1.5px dashed color-mix(in srgb, var(--zc-wz-fg) 18%, transparent);
+			background: color-mix(in srgb, var(--zc-wz-fg) 2.5%, #fff);
+			color: var(--zc-wz-muted);
+		}
+	}
+
+	&__body {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+
+	&__label {
+		color: var(--zc-wz-fg);
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	&__hint {
+		color: var(--zc-wz-muted);
+		font-size: 12.5px;
+	}
+
+	&__actions {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-top: 8px;
+	}
+}
+
+// Compact primary button for in-card actions (Upload/Change).
+.zc-wz-btn {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	width: auto !important;
+	padding: 6px 14px;
+	border: 0;
+	border-radius: 6px;
+	background: var(--zc-wz-accent);
+	color: #fff;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: opacity 0.15s ease;
+
+	&:hover {
+		opacity: 0.9;
+	}
+}
+
+// Label/hint with a control on the right, inside a section.
+.zc-wz-inline-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	padding: 14px 16px;
+	border: 1px solid var(--zc-wz-line);
+	border-radius: 10px;
+
+	&__text {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+
+	&__label {
+		color: var(--zc-wz-fg);
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	&__hint {
+		color: var(--zc-wz-muted);
+		font-size: 12.5px;
+	}
+
+	&__control {
+		flex-shrink: 0;
+		width: 260px;
+	}
+
+	@media (max-width: 640px) {
+		flex-direction: column;
+		align-items: stretch;
+
+		&__control {
+			width: 100%;
+		}
+	}
+}

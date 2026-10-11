@@ -1,0 +1,35 @@
+# === OS / editor ===
+.DS_Store
+.idea
+.git
+.codex
+
+# === Build artifacts ===
+node_modules/
+composer.phar
+/bin/
+**/*.map
+assets/js/*.txt
+
+# === Vendor: ignore everything except runtime deps ===
+# /vendor/* (glob the contents) — not /vendor/ — because Git cannot
+# un-ignore children of a fully-ignored parent directory, which would
+# silently break the `!` negations for newly added vendor files.
+/vendor/*
+!/vendor/prefixed/
+!/vendor/woocommerce/
+!/vendor/storeengine/
+!/vendor/composer/
+!/vendor/autoload.php
+/vendor/prefixed/**/*.md
+
+# === Private / AI workspace ===
+openspec/
+.agents/
+.claude/
+CLAUDE.md
+AGENTS.md
+
+# Commit your application's lock file https://getcomposer.org/doc/01-basic-usage.md#commit-your-composer-lock-file-to-version-control
+# You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
+# composer.lock

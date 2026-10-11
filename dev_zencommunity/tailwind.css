@@ -1,0 +1,6 @@
+/* Tailwind entry. Preflight is disabled in tailwind.config.js so this does not
+   reset the existing Chakra / WordPress styles. Utilities are scoped to
+   #ZenCommunityAppElement via the `important` selector in the config. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

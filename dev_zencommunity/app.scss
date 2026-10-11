@@ -1,0 +1,792 @@
+:root {
+    --zencom-font: 'Inter', sans-serif;
+    // --zencom-primary-color: #2A3BEE;
+    // --zencom-background: #F6F7F8;
+    // --zencom-body-background: #ffffff;
+    // --zencom-border-color: #CBD1D7;
+    // --zencom-secondary-color: #F6F7F8;
+    // --zencom-font-color: #141A24;
+    --zencom-blue-2: #1123DE;
+    --zencom-primary-light: #EBEDFF;
+    --zencom-gray-light: #E0E4E8;
+    --zencom-gray-light: #E0E4E8;
+    --zencom-font-muted: #A2ADB9;
+    --zencom-warning: #E2483D;
+    --zencom-shadow: 0px 0px 1px 0px rgba(20, 26, 36, 0.30), 0px 2px 4px 0px rgba(20, 26, 36, 0.10);
+    
+    --zencom-primary-light-font-color: color-mix(in srgb, var(--zencom-font-color) 60%, transparent);
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body, #ZenCommunityAppElement {
+    background: var(--zencom-body-background);
+}
+
+// FSE "portal" top bar built from granular blocks (Navigation, Identity, …).
+// Sized/positioned to match the community content's fixed sidebars (top:55px)
+// so a custom bar aligns cleanly instead of overlapping them.
+.zencom-fse-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 12;
+    min-height: 55px;
+    align-items: center;
+    background: var(--zencom-background);
+    border-bottom: 1px solid var(--zencom-border-color);
+    box-sizing: border-box;
+}
+
+// Horizontal FSE Navigation block: the shared .zencom-menu style is full-width
+// (built for the vertical sidebar) — size items to content in a horizontal bar.
+.zencom-fse-nav--horizontal .zencom-menu {
+    width: auto;
+    white-space: nowrap;
+}
+
+// FSE composition fix: the SPA lays its sidebars out with position:fixed +
+// viewport widths, which breaks out of Gutenberg columns/containers. Inside the
+// Content Outlet (and standalone sidebar blocks) make them flow in-document so
+// they respect the FSE layout. The all-in-one Community App block is left alone
+// so it keeps its native full-screen fixed layout.
+// Community Portal container block: holds the whole layout as inner blocks
+// (top bar + content). Plain block flow so the inner blocks stack vertically;
+// each inner block (topbar group, content-outlet) manages its own layout.
+.zencom-fse-portal {
+    width: 100%;
+    background: var(--zencom-body-background);
+}
+
+.zencom-fse-block--content-outlet {
+    // The SPA relies on position:fixed to place the sidebars beside the center.
+    // Here they flow in-document (below), so lay the view out as a flex row on
+    // desktop — otherwise the static sidebar and center stack, leaving a big gap.
+    @media (min-width: 1024px) {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 24px;
+    }
+
+    .zencom-left-sidebar,
+    .zencom-right-sidebar {
+        position: static !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        height: auto !important;
+        max-height: none !important;
+        flex: 0 0 auto;
+    }
+    .zencom-center-container {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        flex: 1 1 auto;
+        min-width: 0; // allow the flex child to shrink instead of overflowing
+    }
+}
+
+.zencom-fse-block--content-outlet,
+.zencom-fse-block--left-sidebar {
+    .zencom-left-sidebar__footer {
+        position: static !important;
+    }
+}
+
+// Content Body block: routed content only — hide the views' built-in sidebars
+// so it drops into a custom center column next to standalone sidebar blocks.
+.zencom-fse-content-only {
+    .zencom-left-sidebar,
+    .zencom-right-sidebar {
+        display: none !important;
+    }
+    .zencom-center-container {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+    }
+    .zencom-left-sidebar__footer {
+        position: static !important;
+    }
+}
+
+.zencom-post-heading {
+    display: block;
+    font-size: 1.17em;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+// Question excerpt inside academy Q&A feed posts (see AcademyFeedContent).
+.zencom-academy-quote blockquote {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 12px 0 0;
+    padding: 14px 16px;
+    background: var(--zencom-secondary-color);
+    border-left: 3px solid var(--zencom-border-color);
+    border-radius: 6px;
+    font-style: italic;
+
+    &::before {
+        content: '';
+        flex-shrink: 0;
+        width: 16px;
+        height: 16px;
+        margin-top: 2px;
+        background-color: var(--zencom-font-muted);
+        mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>') no-repeat center / contain;
+    }
+}
+
+.zencom-single-menu {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 8px;
+    width: 100%;
+    border-radius: 4px;
+
+    &--dark-active {
+        background: var(--zencom-secondary-color);
+        color: var(--zencom-primary-color);
+    }
+
+    &--light-active {
+        // background: color-mix(in srgb, var(--zencom-primary-color) 8%, transparent);
+        background: var(--zencom-secondary-color);
+        color: var(--zencom-primary-color);
+    }
+
+    &--dark {
+        color: var(--zencom-primary-color);
+
+        &:hover {
+            background: var(--zencom-secondary-color);
+            color: var(--zencom-primary-color);
+            transition: background 300ms ease-in-out;
+        }
+    }
+
+    &--light {
+        color: var(--zencom-font-color);
+
+        &:hover {
+            // background: color-mix(in srgb, var(--zencom-primary-color) 8%, transparent);
+            background: var(--zencom-secondary-color);
+            color: var(--zencom-primary-color);
+            transition: background 300ms ease-in-out;
+        }
+    }
+
+    &__label {
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+    }
+
+    .zen-com-nav__icon {
+        width: 16px;
+        height: 16px;
+        margin-top: -4px;
+    }
+}
+
+.zencom-menu {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 8px;
+    width: 100%;
+    border-radius: 4px;
+    text-decoration: none;
+    &__label, p {
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        color: var(--zencom-font-color);
+    }
+
+    &__label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+        flex: 1;
+    }
+
+    svg {
+        width: 20px;
+        height: 20px;
+        margin-top: -2px;
+        color: var(--zencom-font-color);
+    }
+
+    &--active {
+        background: var(--zencom-secondary-color);
+        color: var(--zencom-menu-active-color, var(--zencom-primary-color));
+        .zencom-menu__label, svg {
+            color: var(--zencom-menu-active-color, var(--zencom-primary-color));
+        }
+    }
+
+    &--inactive {
+        background: transparent;
+        color: var(--zencom-font-color);
+    }
+
+    &:hover {
+        background: var(--zencom-secondary-color);
+        color: var(--zencom-menu-active-color, var(--zencom-primary-color));
+        .zencom-menu__label, svg {
+            color: var(--zencom-menu-active-color, var(--zencom-primary-color));
+        }
+    }
+
+    // Hover motion: colour/background ease, and the icon grows a touch.
+    // Only transform/colour animate — nothing that changes layout — so the
+    // row itself never shifts or resizes under the cursor.
+    $zc-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    transition: background-color 0.5s ease, color 0.5s ease;
+
+    .zencom-menu__label {
+        transition: color 0.5s ease, transform 0.3s $zc-ease;
+    }
+
+    svg {
+        transition: color 0.5s ease, transform 0.3s $zc-ease;
+    }
+
+}
+
+// Left sidebar: a brand accent bar grows on the left edge on hover/active.
+// No horizontal shift on the icon/label — the row's contents stay put.
+.zencom-left-sidebar .zencom-menu {
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        bottom: 8px;
+        left: 0;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: var(--zencom-menu-active-color, var(--zencom-primary-color));
+        transform: scaleY(0);
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    &:hover::before,
+    &--active::before {
+        transform: scaleY(1);
+    }
+}
+
+// Top nav: one fixed 18px icon box, so every item's glyph is the same size and
+// sits on the label's centre line (the inline SVGs come in at 20px).
+.zencom-menu--top .zen-com-nav__icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    max-height: none;
+
+    svg,
+    img {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+    }
+}
+
+// Collection caret: one glyph that rotates open, smaller than the row icons.
+.zencom-menu .zencom-menu__caret {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin: 0 2px 0 auto;
+    color: color-mix(in srgb, var(--zencom-font-color) 60%, transparent);
+    transition: transform 0.2s ease, color 0.2s ease;
+
+    &.is-open {
+        transform: rotate(90deg);
+    }
+}
+
+// A collection whose group is the open page: brand-coloured label and caret,
+// so you can see where you are even when it's collapsed.
+.zencom-left-sidebar .zencom-menu--collection.has-active {
+    .zencom-menu__label,
+    svg {
+        color: var(--zencom-menu-active-color, var(--zencom-primary-color));
+    }
+
+    .zencom-menu__label {
+        font-weight: 600;
+    }
+
+    &::before {
+        transform: scaleY(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zencom-left-sidebar .zencom-menu > *,
+    .zencom-menu,
+    .zencom-menu svg,
+    .zencom-menu::before,
+    .zencom-menu::after {
+        transition: none !important;
+    }
+}
+
+// The Formal/Informal ticket-reply toggle (TicketReply.js) reuses .zencom-menu
+// purely for its active/inactive color states, but that class's own layout —
+// width: 100%, justify-content: flex-start — is meant for a vertical sidebar
+// menu item, not a small side-by-side toggle; left as-is, "Formal" filled the
+// whole row and pushed "Informal" onto its own line.
+.zencom-ticket-details__replies .zencom-menu {
+    width: auto;
+    justify-content: center;
+    padding: 4px 10px;
+}
+
+// A ticket message's raw content HTML (lists, paragraphs) was relying on
+// nothing but the browser's bare UA defaults - no indent reset, no spacing
+// between list items or paragraphs - so a message written as a bulleted list
+// read as a single dense, cramped block instead of a scannable list. Scoped
+// to the conversation thread so it can't affect lists anywhere else in the
+// app (e.g. the rich-text editor's own list styling).
+.zencom-ticket-details__conversations-inner {
+    ul, ol {
+        margin: 6px 0 10px;
+        padding-left: 22px;
+    }
+
+    li {
+        margin-bottom: 6px;
+        line-height: 1.6;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    p {
+        line-height: 1.6;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+// Fallback shown in place of a group/profile cover image when none has been
+// uploaded — a soft blurred version of the placeholder art rather than a flat
+// icon. Hidden entirely (see `show_cover_placeholder` setting) when disabled.
+
+.zencom-menu2 {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 8px;
+    width: 100%;
+    border-radius: 4px;
+    text-decoration: none;
+    &__label, p {
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        color: var(--zencom-font-color);
+    }
+
+    &__label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+        flex: 1;
+    }
+
+    svg {
+        width: 20px;
+        height: 20px;
+        margin-top: -2px;
+        color: var(--zencom-font-color);
+    }
+
+    &--active {
+        border: 1px solid var(--zencom-primary-color);
+        .zencom-menu__label, svg {
+            color: var(--zencom-primary-color);
+        }
+    }
+
+    &--inactive {
+        border: 1px solid var(--zencom-border-color);
+        color: var(--zencom-font-color);
+    }
+    
+    &:hover {
+        border: 1px solid var(--zencom-primary-color);
+        color: var(--zencom-primary-color);
+        transition: background 300ms ease-in-out;
+        .zencom-menu__label, svg {
+            color: var(--zencom-primary-color);
+        }
+    }
+}
+
+.zencom-top-menu {
+    // Use like this
+    // className={classNames(
+    //     "zencom-top-menu",
+    //     `zencom-top-menu--${isThemeDark ? "dark" : "light"}`,
+    //     { "zencom-top-menu--active": viewMode === "grid" }
+    // )}
+    border: 1px solid var(--zencom-border-color);
+    border-radius: 8px;
+    padding: 10px;
+    height: auto;
+    line-height: 0;
+    background: transparent;
+    cursor: pointer;
+    // Hover: soft brand glow and the icon pops; the button box itself stays
+    // still so the cursor never slips off its edge.
+    transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+
+    svg {
+        transition: color 0.5s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    &:hover {
+        border-color: color-mix(in srgb, var(--zencom-primary-color) 45%, var(--zencom-border-color));
+        box-shadow: 0 4px 12px -6px color-mix(in srgb, var(--zencom-primary-color) 50%, transparent);
+
+        svg {
+            color: var(--zencom-primary-color);
+            transform: scale(1.1);
+        }
+    }
+
+    &:active svg {
+        transform: scale(0.94);
+    }
+    &--dark {
+        &:hover {
+            background: var(--zencom-secondary-color);
+        }
+    }
+
+    &--light {
+        &:hover {
+            background: var(--zencom-border-color);
+        }
+    }
+
+    &--dark.zencom-top-menu--active {
+        background: var(--zencom-secondary-color);
+    }
+
+    &--light.zencom-top-menu--active {
+        background: var(--zencom-border-color);
+    }
+}
+
+.zencom-tags {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
+    border: 1px solid var(--zencom-border-color);
+    border-radius: 4px;
+    text-transform: capitalize;
+    padding: 2px 8px;
+    svg {
+        color: var(--zencom-font-color);
+    }
+
+    &__label {
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 16px;
+        color: var(--zencom-font-color);
+    }
+}
+
+@import '../assets/scss/notification';
+@import '../assets/scss/reactSelect';
+@import '../assets/scss/tabs';
+
+// Custom radio button
+.zencom-radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.zencom-radio-input {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--zencom-border-color);
+    border-radius: 50%;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.zencom-radio-input:checked {
+    border-color: var(--zencom-primary-color);
+    background-color: var(--zencom-background);
+}
+
+.zencom-radio-input:checked::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background-color: var(--zencom-primary-color);
+    border-radius: 50%;
+}
+
+.zencom-radio-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--zencom-primary-color) 20%, transparent);
+}
+
+.zencom-radio-input:hover {
+    border-color: var(--zencom-primary-color);
+}
+
+.zencom-radio-label {
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+}
+
+.zencom-radio-option {
+    color: var(--zencom-gray-color);
+}
+
+.zencom-radio-option.active {
+    color: var(--zencom-primary-color);
+}
+
+.zencom-radio-option.active .zencom-radio-label {
+    color: var(--zencom-primary-color);
+}
+// Custom radio button
+
+.emoji {
+    display: inline !important;
+    width: 1em;
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .zencom-ticket-table td > p{
+        width: fit-content;
+    }
+    .zencom-ticket-table table td, .zencom-ticket-table table tr {
+        display: revert;
+    }
+}
+
+// Global Animations
+@keyframes zencom-fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes zencom-slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes zencom-scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.zencom-animate-fade {
+    animation: zencom-fadeIn 0.5s ease-out forwards;
+}
+
+.zencom-animate-slide-up {
+    animation: zencom-slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.zencom-animate-scale {
+    animation: zencom-scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes zencom-slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.zencom-animate-slide-down {
+    animation: zencom-slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    z-index: 1;
+}
+
+// Global transitions for interactive elements
+// Paint + transform only: transitioning `all` also animated font-weight, size,
+// padding and the like, which made text and rows visibly jump on hover.
+a, button, .chakra-button, .zencom-radio-input, .zencom-post-card {
+    transition-property: color, background-color, border-color, box-shadow, opacity, fill, stroke, transform !important;
+    transition-duration: 0.5s !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+// Cards rise slightly with a soft shadow on hover. Uses the standalone
+// `translate` property: the entrance animation (zencom-animate-slide-up) holds
+// `transform` with fill-mode forwards, which would override a hover transform.
+.zencom-hover-lift {
+    transition: translate 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+}
+
+.zencom-hover-lift:hover {
+    translate: 0 -2px;
+    box-shadow: 0 10px 24px -14px rgba(16, 24, 40, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zencom-hover-lift:hover {
+        translate: none;
+    }
+}
+
+.zen-com-modal-overlay {
+    transition: opacity 0.3s ease;
+}
+
+.zen-com-modal {
+    animation: zencom-scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+// WooCommerce/StoreEngine price_html (e.g. course pricing) ships
+// accessibility-only labels ("Original price was: …", "Current price is: …")
+// wrapped in this class, normally hidden by WP core's admin/front-end
+// stylesheets. Those aren't loaded in the SPA shell, so without this the
+// labels render visibly wherever price_html is injected.
+.screen-reader-text {
+    border: 0;
+    clip: rect(1px, 1px, 1px, 1px);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute !important;
+    width: 1px;
+    word-wrap: normal !important;
+}
+
+// Frontend counterpart to the admin Tailwind bundle's notched-label fields
+// (NotchedSelectField.js). At rest the label sits right on the control's own
+// top border, masked by the same background so it reads as a notch cut into
+// the line; focusing the control inside lifts it clear and gives it the
+// primary color + bold weight. `pointer-events: none` keeps the label out of
+// the way of clicks on the control underneath it.
+.zc-notched-select {
+    // The wrapper owns the real visible border instead of the control inside
+    // it (ZCSelect/react-select each bake their own border into a nested
+    // element whose exact position varies by what's nested inside - trying
+    // to line a label up with THAT border is guesswork). Stripping the
+    // inner control's border and drawing it here means the label (positioned
+    // against THIS element) always lands exactly on the line, regardless of
+    // the control's own internal padding.
+    position: relative;
+    border: 1px solid var(--zencom-border-color);
+    transition: border-color 0.2s ease;
+    cursor: pointer;
+
+    [data-part="trigger"],
+    [class$="-control"],
+    [class*="__control"] {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+
+    &:focus-within {
+        border-color: var(--zencom-primary-color);
+    }
+
+    &__label {
+        position: absolute;
+        top: 0;
+        left: 10px;
+        transform: translateY(-50%);
+        z-index: 1;
+        background: var(--zencom-background);
+        padding: 0 6px;
+        font-size: 13px;
+        line-height: 1;
+        color: var(--zencom-font-muted, #738496);
+        pointer-events: none;
+        transition: top 0.2s ease, left 0.2s ease, font-size 0.2s ease, font-weight 0.2s ease, color 0.2s ease;
+    }
+
+    &:focus-within &__label {
+        top: -4px;
+        left: -5px;
+        transform: translateY(calc(-100% - 4px));
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--zencom-font-color);
+    }
+}
+
+// Sale price_html (course pricing): mute the struck-through original price,
+// drop the default <ins> underline so it reads as plain emphasized text.
+.zencom-price {
+    del {
+        margin-right: 6px;
+        font-size: 0.9em;
+        font-weight: 400;
+        text-decoration: line-through;
+        opacity: 0.55;
+    }
+
+    ins {
+        text-decoration: none;
+    }
+}

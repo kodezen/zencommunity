@@ -1,0 +1,59 @@
+/* Admin-only Tailwind utilities. Scoped to #ZenCommunitySettingsElement via
+   tailwind.admin.config.js so it cannot leak into the main app or the
+   surrounding WordPress admin page. */
+@config "../../tailwind.admin.config.js";
+
+@tailwind utilities;
+
+/* Hides the scrollbar track/thumb on an otherwise-scrollable container
+   (content still scrolls via wheel/drag/keyboard). Used by every modal/
+   drawer scroll area under #ZenCommunitySettingsElement. */
+#ZenCommunitySettingsElement .tw-no-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE, Edge */
+}
+#ZenCommunitySettingsElement .tw-no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+/* Chrome/Safari fill grouped fields (e.g. name + email) from a saved profile
+   but only fire input/change events on the field the user actually clicked -
+   sibling fields get their value painted with no event, so React/Formik state
+   silently falls out of sync with what's on screen. This keyframe fires an
+   `animationstart` per-element whenever the browser applies its autofill
+   style, independent of whether it dispatched an input event, so callers can
+   listen for it and resync state. See UserDialog.js. */
+@keyframes zencom-autofill-start {
+    from {}
+    to {}
+}
+#ZenCommunitySettingsElement input:-webkit-autofill {
+    animation-name: zencom-autofill-start;
+}
+
+/* Sidebar active-nav-item indicator: grows from the vertical middle of the
+   row outward to both the top and bottom edges at once (scaleY from a
+   center transform-origin), rather than just appearing at full height. */
+@keyframes zc-nav-indicator-grow {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+}
+#ZenCommunitySettingsElement .zc-nav-indicator {
+    transform-origin: center;
+    animation: zc-nav-indicator-grow 220ms ease-out;
+}
+
+/* Fallback for --zc-below-admin-nav before AdminNav's own measurement
+   effect has run (or if it fails for some reason) — matches the fixed
+   #wpadminbar heights at the two breakpoints WP core itself uses. AdminNav
+   overwrites this with the real measured value once mounted, so LeftBar
+   stays pinned exactly below it even if the bar's real height ever drifts
+   from this guess (admin notices, a wrapped tab row, etc). */
+#ZenCommunitySettingsElement {
+    --zc-below-admin-nav: 103px;
+}
+@media (min-width: 783px) {
+    #ZenCommunitySettingsElement {
+        --zc-below-admin-nav: 89px;
+    }
+}

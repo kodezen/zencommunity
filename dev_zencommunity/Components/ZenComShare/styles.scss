@@ -1,0 +1,9 @@
+.zen-com-modal {
+    &--post-share {
+        .zen-com-modal {
+            &__content {
+                padding: 30px !important;
+            }
+        }
+    }
+}

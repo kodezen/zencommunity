@@ -1,0 +1,96 @@
+# NOTE ON ANCHORING: every rule below that names a project-root file/folder
+# is written with a leading "/". wp dist-archive's ignore matcher
+# (inmarelibero/gitignore-checker) treats an unanchored bareword rule (no
+# leading "/") as matching that name at ANY depth, not just at the project
+# root — e.g. a bare "src" rule would silently exclude every
+# vendor/prefixed/*/src folder too (real PSR-4 packages almost always use
+# "src/"). This plugin's current vendor/prefixed content happens not to have
+# any nested "src/" folders, so it hasn't bitten yet, but zencommunity-pro
+# hit exactly this bug (a fatal "class not found" error shipped to
+# production from vendor/prefixed/ralouphie going missing this way).
+# Anchoring here is preemptive. Wildcard bloat patterns (*.xml, *.map,
+# .DS_Store) are left unanchored on purpose — matching those anywhere is the
+# intended behavior.
+
+# === Dev sources ===
+/dev_zencommunity
+/src
+/assets/scss
+
+# === Build configs / tooling ===
+# package.json, webpack.config.js and composer.json/.lock ship in the zip so
+# the build is reproducible (WordPress.org guideline 4); the JS sources live
+# in the public repository linked from readme.txt.
+/package-lock.json
+/prepros.config
+/phpcs.log
+/postcss.config.js
+/tailwind.config.js
+/tailwind.admin.config.js
+/build.config.json
+/build-tools
+/bin
+/docs
+*.xml
+*.map
+
+# === JS / editor configs ===
+/.babelrc
+/.eslintignore
+/.eslintrc.js
+/.prettierignore
+/.prettierrc.json
+/.prettierrc.js
+/jsconfig.json
+/.phpactor.json
+
+# === VCS / IDE / OS ===
+/.git
+/.gitattributes
+/.gitignore
+/.distignore
+/.idea
+/.vscode
+.DS_Store
+/node_modules
+/.github
+/.npmrc
+/.nvmrc
+
+# === Dev-only WP-CLI dummy-data seeder (creates fake users) ===
+/includes/classes/command/seed-data.php
+
+# === Private / AI workspace ===
+/.claude
+/.agents
+/openspec
+/CLAUDE.md
+/AGENTS.md
+
+# === Vendor: ship ONLY Strauss output + runtime deps ===
+# Runtime requires:
+#   - vendor/prefixed/autoload.php (Strauss-prefixed deps)
+#   - vendor/woocommerce/action-scheduler/action-scheduler.php
+#   - vendor/storeengine/wordpress-sdk (license SDK, shared with -pro)
+#   - vendor/composer (Strauss-prefixed autoloader metadata)
+#   - vendor/autoload.php (composer autoload entry)
+# Composer's bin/ is not used at runtime and is excluded by explicit name
+# below rather than a blanket "/vendor/" + negations rule. wp dist-archive's
+# ignore matcher (inmarelibero/gitignore-checker) does not implement real
+# gitignore semantics: negating children of a fully-excluded "/vendor/"
+# still leaves the bare vendor/ directory entry itself matched as excluded,
+# so it never gets created when the archive is staged. Directories recover
+# anyway because their own recursive mkdir() implicitly creates missing
+# parents, but vendor/autoload.php is a plain file — copy() does not create
+# missing parent dirs — so it silently failed to ship. Naming vendor/bin
+# directly avoids ever excluding the bare vendor/ path.
+/vendor/bin
+
+# === Bloat in shipped runtime deps ===
+/vendor/prefixed/**/CHANGELOG*
+/vendor/prefixed/**/UPGRADING*
+/vendor/prefixed/**/.github
+/vendor/prefixed/**/tests
+/vendor/prefixed/**/Tests
+/vendor/prefixed/**/test
+/vendor/prefixed/**/.phpunit*

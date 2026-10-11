@@ -1,0 +1,41 @@
+<?php return array(
+    'root' => array(
+        'name' => 'kodezen/zencommunity',
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => '789e7315fa4fbf55c9754d87d20822bb60027eee',
+        'type' => 'project',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => false,
+    ),
+    'versions' => array(
+        'kodezen/zencommunity' => array(
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '789e7315fa4fbf55c9754d87d20822bb60027eee',
+            'type' => 'project',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'storeengine/wordpress-sdk' => array(
+            'pretty_version' => 'v1.5.9',
+            'version' => '1.5.9.0',
+            'reference' => '8d92b2139477f6d7018a9f8e603992b225a5d583',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../storeengine/wordpress-sdk',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'woocommerce/action-scheduler' => array(
+            'pretty_version' => '3.9.3',
+            'version' => '3.9.3.0',
+            'reference' => 'c58cdbab17651303d406cd3b22cf9d75c71c986c',
+            'type' => 'wordpress-plugin',
+            'install_path' => __DIR__ . '/../woocommerce/action-scheduler',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);

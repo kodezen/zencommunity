@@ -1,0 +1,426 @@
+// Header notification bell + dropdown (Components/UserNotification).
+.zc-notif {
+    --zc-n-fg: var(--zencom-font-color, #101828);
+    --zc-n-muted: color-mix(in srgb, var(--zc-n-fg) 58%, transparent);
+    --zc-n-line: var(--zencom-border-color, #e4e7ec);
+    --zc-n-bg: var(--zencom-background, #fff);
+    --zc-n-accent: var(--zencom-primary-color, #2a3bee);
+    --zc-n-accent-soft: color-mix(in srgb, var(--zc-n-accent) 9%, var(--zc-n-bg));
+
+    position: relative;
+}
+
+// `.zc-notif .zc-notif-panel` (not just the class) so app.scss's shared
+// `.zencom-animate-slide-down { z-index: 1 }` can't drop it under the page.
+.zc-notif .zc-notif-panel {
+    z-index: 99999;
+}
+
+.zc-notif-panel {
+    position: absolute;
+    top: 49px;
+    right: -19px;
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    max-height: min(560px, calc(100vh - 80px));
+    overflow: hidden;
+    border: 1px solid var(--zc-n-line);
+    border-radius: 12px;
+    background: var(--zc-n-bg);
+    box-shadow: 0 16px 40px -12px rgba(16, 24, 40, 0.22), 0 4px 10px -6px rgba(16, 24, 40, 0.1);
+
+    &.is-fixed {
+        position: fixed;
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-height: 80vh;
+    }
+
+    &__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px 10px;
+    }
+
+    &__title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--zc-n-fg);
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    &__count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 999px;
+        background: var(--zc-n-accent);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    &__mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        padding: 5px 8px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--zc-n-accent);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+
+        svg {
+            font-size: 15px;
+        }
+
+        &:hover:not(:disabled) {
+            background: var(--zc-n-accent-soft);
+        }
+
+        &:disabled {
+            color: var(--zc-n-muted);
+            cursor: default;
+            opacity: 0.6;
+        }
+    }
+
+    &__list {
+        flex: 1;
+        min-height: 220px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    &__foot {
+        border-top: 1px solid var(--zc-n-line);
+        text-align: center;
+
+        a {
+            display: block;
+            padding: 11px;
+            color: var(--zc-n-accent);
+            font-size: 13.5px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background-color 0.15s ease;
+
+            &:hover {
+                background: var(--zc-n-accent-soft);
+            }
+        }
+    }
+}
+
+// All / Unread / Read
+.zc-notif-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--zc-n-line);
+
+    &__item {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        padding: 8px 10px 10px;
+        border: 0;
+        background: transparent;
+        color: var(--zc-n-muted);
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.15s ease;
+
+        &::after {
+            content: '';
+            position: absolute;
+            right: 10px;
+            bottom: -1px;
+            left: 10px;
+            height: 2px;
+            border-radius: 2px 2px 0 0;
+            background: var(--zc-n-accent);
+            transform: scaleX(0);
+            transition: transform 0.2s ease;
+        }
+
+        &:hover {
+            color: var(--zc-n-fg);
+        }
+
+        &.is-active {
+            color: var(--zc-n-accent);
+            font-weight: 600;
+
+            &::after {
+                transform: scaleX(1);
+            }
+        }
+    }
+
+    &__count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: var(--zc-n-accent-soft);
+        color: var(--zc-n-accent);
+        font-size: 11px;
+        font-weight: 600;
+    }
+}
+
+.zc-notif-group {
+    &__label {
+        margin: 0;
+        padding: 14px 16px 6px;
+        color: var(--zc-n-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    &__list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+}
+
+.zc-notif-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--zc-n-line) 70%, transparent);
+    transition: background-color 0.15s ease;
+
+    &:last-child {
+        border-bottom: 0;
+    }
+
+    &:hover {
+        background: color-mix(in srgb, var(--zc-n-fg) 3.5%, var(--zc-n-bg));
+    }
+
+    // Unread: faint tint + accent bar on the left edge.
+    &.is-unread {
+        background: color-mix(in srgb, var(--zc-n-accent) 4%, var(--zc-n-bg));
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            bottom: 10px;
+            left: 0;
+            width: 3px;
+            border-radius: 0 3px 3px 0;
+            background: var(--zc-n-accent);
+        }
+
+        &:hover {
+            background: color-mix(in srgb, var(--zc-n-accent) 7%, var(--zc-n-bg));
+        }
+    }
+
+    &__link {
+        display: flex;
+        flex: 1;
+        align-items: flex-start;
+        gap: 12px;
+        min-width: 0;
+        padding: 12px 4px 12px 16px;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    &__avatar {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    &__badge {
+        position: absolute;
+        right: -4px;
+        bottom: -4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--zc-n-bg);
+        border-radius: 50%;
+        color: #fff;
+        font-size: 10px;
+
+        &.is-rose { background: #f43f5e; }
+        &.is-blue { background: #3b82f6; }
+        &.is-violet { background: #8b5cf6; }
+        &.is-indigo { background: #6366f1; }
+        &.is-green { background: #10b981; }
+        &.is-amber { background: #f59e0b; }
+        &.is-slate { background: #64748b; }
+        &.is-cyan { background: #06b6d4; }
+    }
+
+    &__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    &__top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    &__name {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--zc-n-fg);
+        font-size: 13.5px;
+        font-weight: 500;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        .is-unread & {
+            font-weight: 600;
+        }
+    }
+
+    &__time {
+        flex-shrink: 0;
+        color: var(--zc-n-muted);
+        font-size: 11.5px;
+        white-space: nowrap;
+
+        .is-unread & {
+            color: var(--zc-n-accent);
+            font-weight: 500;
+        }
+    }
+
+    &__text {
+        display: -webkit-box;
+        overflow: hidden;
+        color: color-mix(in srgb, var(--zc-n-fg) 70%, transparent);
+        font-size: 13px;
+        line-height: 1.45;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+
+        strong {
+            color: var(--zc-n-fg);
+            font-weight: 600;
+        }
+    }
+
+    // Read state toggle: filled dot when unread, faint ring on hover when read.
+    &__dot {
+        flex-shrink: 0;
+        width: 8px;
+        height: 8px;
+        margin: 0 16px 0 8px;
+        padding: 0;
+        border: 1.5px solid transparent;
+        border-radius: 50%;
+        background: transparent;
+        cursor: pointer;
+        transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+
+        .zc-notif-item:hover & {
+            border-color: color-mix(in srgb, var(--zc-n-fg) 30%, transparent);
+        }
+
+        &:hover {
+            transform: scale(1.35);
+        }
+
+        .is-unread & {
+            border-color: var(--zc-n-accent);
+            background: var(--zc-n-accent);
+        }
+    }
+}
+
+.zc-notif-skeleton {
+    padding: 12px 16px;
+
+    &__row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+    }
+
+    &__lines {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+.zc-notif-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 260px;
+    padding: 32px 24px;
+    text-align: center;
+
+    &__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        margin-bottom: 8px;
+        border-radius: 50%;
+        background: var(--zc-n-accent-soft);
+        color: var(--zc-n-accent);
+        font-size: 24px;
+    }
+
+    strong {
+        color: var(--zc-n-fg);
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    span:last-child {
+        max-width: 260px;
+        color: var(--zc-n-muted);
+        font-size: 13px;
+        line-height: 1.5;
+    }
+}

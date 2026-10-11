@@ -1,0 +1,234 @@
+:root {
+    --zencom-font: 'Inter', sans-serif;
+    // Brand primary is intentionally kept (NOT GemCRM's #006BFF) — everything
+    // else below is aligned to the GemCRM neutral palette for a consistent
+    // admin look with readable contrast.
+    --zencom-primary-color: #2A3BEE;
+    // Card / control surface — white, sits on the #F6F7F8 page (GemCRM
+    // `--gemcrm-background`). Was #F6F7F8, which made cards blend into the page.
+    --zencom-background: #FFFFFF;
+    --zencom-body-background: #ffffff;
+    // GemCRM `--gemcrm-border-color` — softer than the previous #CBD1D7.
+    --zencom-border-color: #DFE1E5;
+    --zencom-secondary-color: #F6F7F8;
+    // GemCRM heading/font color.
+    --zencom-font-color: #131D2B;
+    --zencom-blue-2: #1123DE;
+    --zencom-primary-light: #EBEDFF;
+    --zencom-gray-light: #E0E4E8;
+    // Muted/subtitle/description text. Was #A2ADB9 — that is GemCRM's
+    // *placeholder* gray (~2:1 on white, fails WCAG AA). GemCRM paints
+    // descriptions/subtitles with #575E6C (~6.9:1), which is what this drives.
+    --zencom-font-muted: #575E6C;
+    // Kept for real placeholder text (GemCRM `--gemcrm-placeholder`).
+    --zencom-placeholder: #A2ADB9;
+    --zencom-warning: #E2483D;
+    --zencom-shadow: 0px 0px 1px 0px rgba(20, 26, 36, 0.30), 0px 2px 4px 0px rgba(20, 26, 36, 0.10);
+}
+
+ul, li {
+    margin: 0;
+    padding: 0;
+}
+
+#ZenCommunitySettingsElement {
+    // GemCRM admin palette + type (gemcrm/assets/scss/Common/_global.scss).
+    // Set on the app root, not :root, so it also wins over the community brand
+    // colours that FullSettings' ThemeApplier writes to :root on Settings.
+    --zencom-primary-color: #006BFF;
+    --zencom-primary-light: #E3E7FF;
+    --zencom-font-color: #131D2B;
+    --zencom-font-muted: #575E6C;
+    --zencom-border-color: #DFE1E5;
+    --zencom-secondary-color: #F6F7F8;
+    --zencom-background: #FFFFFF;
+    --zc-label-color: #374151;
+    --zc-icon-inactive: #9CA3AF;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    color: var(--zencom-font-color);
+    background: #F6F7F8;
+    margin: 0 0 0 -20px;
+    padding: 0;
+    // Matches wp-admin/css/common.css's own body font stack exactly (NOT
+    // var(--zencom-font)/Inter — that's loaded only for the frontend
+    // community pages, via Assets::localized_data()'s Google Fonts enqueue,
+    // so using it here would just substitute one different-looking sans for
+    // another). On the normal admin.php pages this rule is redundant with
+    // that same wp-admin core CSS; the standalone Setup Wizard document
+    // (templates/admin/setup.php) never enqueues wp-admin's core CSS at
+    // all, so without an explicit rule here it fell through to the
+    // browser's default serif font instead.
+    // font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+
+    // Preflight is disabled for this bundle (tailwind.admin.config.js), so
+    // there's no global box-sizing reset. WP-admin's forms.css only sets
+    // border-box on input/select/textarea/button — any plain `tw-w-full`
+    // div that also has padding (content-box default) renders wider than
+    // 100%, since padding adds to the box instead of being eaten from it.
+    &, *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    // Same Preflight gap, a different symptom: Tailwind's translate-x-*/
+    // translate-y-*/rotate-*/scale-*/skew-* utilities each only set their own
+    // `--tw-*` custom property, then compose the full `transform` from ALL
+    // six of them (`translate(var(--tw-translate-x), var(--tw-translate-y))
+    // rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    // scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))`). Preflight is what
+    // normally defines all six on `*` so a lone `translate-x-*` still
+    // resolves; without it, the other five are unset custom properties with
+    // no fallback in that `var()` call, which makes the WHOLE `transform`
+    // declaration invalid — so it computes to `none` regardless of which
+    // translate-x-* class is applied. That's exactly why Toggle.js's knob
+    // (`tw-translate-x-[12px]`/`tw-translate-x-[-4px]`) never visibly slid:
+    // its own background-color classes have no such dependency and always
+    // applied fine, making it look like only the color was "really" toggling.
+    &, *, *::before, *::after {
+        --tw-translate-x: 0;
+        --tw-translate-y: 0;
+        --tw-rotate: 0;
+        --tw-skew-x: 0;
+        --tw-skew-y: 0;
+        --tw-scale-x: 1;
+        --tw-scale-y: 1;
+    }
+
+    // Same forms.css rule, its other half: browsers don't let form controls
+    // inherit font-family/size/weight from the page by default (a plain
+    // `<button>`/`<input>` renders in the UA's own control font — Arial in
+    // most desktop browsers — regardless of what's set above), which is why
+    // every button/input/select on the normal admin.php pages correctly
+    // matches the page font already, via this exact wp-admin rule, while the
+    // standalone Setup Wizard document — missing wp-admin's core CSS same as
+    // the font-family fix above — showed its buttons in plain Arial instead.
+    // (moved below, outside this #id block — see the :where() rule)
+
+    // react-select (PrimarySelect, classNamePrefix="zc-select") renders its
+    // typeahead as a real <input>. react-select's own `styles.input` only
+    // reaches the wrapper div around it, so wp-admin's forms.css
+    // (`input[type="text"]:focus`) still paints its blue border/box-shadow
+    // directly on that inner input — visible as a thick bar when the input
+    // is empty (near-zero width). Override it here on the actual element.
+    //
+    // wp-components' base field styling (`input[type="text"] { min-height:
+    // 40px; padding: 0 12px }`) also lands on this same inner input — it's
+    // meant for a real visible text field, but here it's react-select's
+    // near-invisible caret input. Left alone it inflates the invisible
+    // input to 40px tall, which stretches the value-container around it,
+    // which stretches the whole control several px past its own intended
+    // height — the actual source of every PrimarySelect rendering taller
+    // than the input/button sitting next to it.
+    .zc-select__input {
+        border: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+    }
+
+    // A PrimarySelect's control renders at a different height than a plain
+    // <input> or the button components next to it (they land on different
+    // heights from their own padding/border math), which reads as a jagged
+    // row wherever a select sits inline with an input and a button — e.g.
+    // the Knowledge Base crawler's "attach"/auto-update rows. Pin all three
+    // to one explicit height instead of tuning each component's padding.
+    // `input:not(.zc-select__input)` excludes react-select's own hidden
+    // typeahead <input> inside the control — giving THAT a min-height
+    // inflates the value-container around it, which is what actually made
+    // the control taller than the buttons in the first place.
+    .zc-kb-actions-row {
+        .zc-select__control,
+        input:not(.zc-select__input),
+        button {
+            min-height: 40px;
+        }
+    }
+}
+.zencom-settings-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+// Baseline reset only — no !important, so Tailwind's margin utilities
+// (`#ZenCommunitySettingsElement .tw-mb-4`, etc., which already carry higher
+// specificity than a bare `p`) can actually override this on any <p> that
+// asks for spacing, instead of being silently defeated everywhere.
+p {
+    margin: 0;
+}
+
+// .zencommunity-settings h2 {
+//     margin-bottom: 20px;
+//     font-size: 20px;
+//     color: #23282d;
+// }
+
+// .form-group {
+//     margin-bottom: 16px;
+// }
+
+// .form-group label {
+//     display: block;
+//     margin-bottom: 6px;
+//     font-weight: 600;
+//     color: #444;
+// }
+
+// .form-group input[type="text"],
+// .form-group input[type="url"],
+// .form-group select,
+// .form-group textarea {
+//     width: 100%;
+//     padding: 8px;
+//     font-size: 14px;
+//     border: 1px solid #ccd0d4;
+//     border-radius: 4px;
+//     box-sizing: border-box;
+// }
+
+// .form-group input[type="checkbox"] {
+//     margin-right: 8px;
+// }
+
+// .form-group select[multiple] {
+//     height: auto;
+//     min-height: 80px;
+// }
+
+// .error {
+//     color: #b32d2e;
+//     font-size: 13px;
+//     margin-top: 4px;
+// }
+
+// .message {
+//     margin-top: 16px;
+//     padding: 10px;
+//     border-left: 4px solid #46b450;
+//     background-color: #ecfdf5;
+//     color: #1e4620;
+// }
+
+// button {
+//     background: #007cba;
+//     color: #fff;
+//     border: none;
+//     padding: 10px 16px;
+//     font-size: 14px;
+//     border-radius: 4px;
+//     cursor: pointer;
+// }
+
+// button:disabled {
+//     background: #b4d4eb;
+//     cursor: not-allowed;
+// }
+
+// Form controls inherit the admin font. Zero specificity (:where on both
+// parts), so a component's own font-size/weight (e.g. .zc-settings-nav__item)
+// still wins; nested under the #id this used to force every button to the
+// 13px/400 inherited from wp-admin.
+:where(#ZenCommunitySettingsElement) :where(input, select, textarea, button) {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+}
